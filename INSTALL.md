@@ -42,7 +42,7 @@ python setup.py install --cuda_ext --cpp_ext
 d. Clone the DenseMatchingBenchmark repository.
 
 ```bash
-git clone https://github.com/youmi-zym/DenseMatchingBenchmark.git
+git clone https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark.git
 cd DenseMatchingBenchmark
 ```
 
@@ -67,7 +67,7 @@ bash INSTALL.sh all
 
 ### Prepare Scene Flow and KITTI dataset.
 
-It is recommended to symlink the dataset root to `$DenseMatchingBenchmark/data/`.
+It is recommended to symlink the dataset root to `$DenseMatchingBenchmark/datasets/`.
 
 ```
 ├── KITTI-2012

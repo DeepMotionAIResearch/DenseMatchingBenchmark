@@ -1,0 +1,16 @@
+numpy
+matplotlib
+scikit-image
+scipy
+cffi
+imageio
+tqdm
+tensorflow
+tensorboardX
+yacs
+pyyaml
+easydict
+cython
+mmcv
+ipython
+cupy
