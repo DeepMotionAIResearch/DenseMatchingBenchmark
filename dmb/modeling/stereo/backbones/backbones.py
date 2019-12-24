@@ -14,7 +14,7 @@ def build_gcnet_backbone(cfg):
 
 
 @registry.BACKBONES.register("PSMNet")
-def build_gcnet_backbone(cfg):
+def build_psmnet_backbone(cfg):
     in_planes = cfg.model.backbone.in_planes
     batch_norm = cfg.model.batch_norm
 
