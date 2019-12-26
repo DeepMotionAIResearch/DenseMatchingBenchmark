@@ -56,7 +56,7 @@ We appreciate all contributions to improve DenseMatchingBenchmark. Please refer 
 ## Acknowledgement
 
 DenseMatchingBenchmark is an open source project that is contributed by researchers and engineers from various colledges and companies. We appreciate all the contributors who implement their methods or add new features, as well as users who give valuable feedbacks.
-We wish that the toolbox and benchmark could serve the growing research community by providing a flexible toolkit to reimplement existing methods and develop their own new detectors.
+We wish that the toolbox and benchmark could serve the growing research community by providing a flexible toolkit to reimplement existing methods and develop their own new matching algortihm.
 
 
 ## Citation
@@ -64,6 +64,12 @@ We wish that the toolbox and benchmark could serve the growing research communit
 If you use this toolbox or benchmark in your research, please cite this project.
 
 ```
+    @article{zhang2019adaptive,
+      title={Adaptive Unimodal Cost Volume Filtering for Deep Stereo Matching},
+      author={Zhang, Youmin and Chen, Yimin and Bai, Xiao and Zhou, Jun and Yu, Kun and Li, Zhiwei and Yang, Kuiyuan},
+      journal={arXiv preprint arXiv:1909.03751},
+      year={2019}
+    }
 
 ```
 
