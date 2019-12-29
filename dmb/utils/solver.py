@@ -1,5 +1,7 @@
 import torch
 
+from mmcv.runner import obj_from_dict
+
 
 def build_optimizer(model, optimizer_cfg):
     """Build optimizer from configs.

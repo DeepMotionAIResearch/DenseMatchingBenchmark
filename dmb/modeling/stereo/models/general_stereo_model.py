@@ -31,9 +31,23 @@ class GeneralizedStereoModel(nn.Module):
         ref_img, tgt_img = batch['leftImage'], batch['rightImage']
         target = batch['leftDisp'] if 'leftDisp' in batch else None
 
+        import pdb
+        pdb.set_trace()
+
         ref_fms, tgt_fms = self.backbone(ref_img, tgt_img)
+
+        import pdb
+        pdb.set_trace()
+
         costs = self.cost_processor(ref_fms, tgt_fms, int(self.max_disp // self.scale))
+
+        import pdb
+        pdb.set_trace()
+
         disps = [self.disp_predictor(cost) for cost in costs]
+
+        import pdb
+        pdb.set_trace()
 
         cost_vars = None
         if self.training:
@@ -44,6 +58,10 @@ class GeneralizedStereoModel(nn.Module):
 
             gsm_loss_dict = self.loss_evaluator(disps, costs, target, cost_vars=cost_vars)
             loss_dict.update(gsm_loss_dict)
+
+            import pdb
+            pdb.set_trace()
+
             return {}, loss_dict
         else:
             results = dict(

@@ -9,55 +9,42 @@ model = dict(
     # the model whether or not to use BatchNorm
     batch_norm=True,
     backbone=dict(
-        conv_body="PSMNet",
+        conv_body="GCNet",
         # the in planes of feature extraction backbone
         in_planes=3,
         # down-sample scale of the final feature map
-        scale=4,
+        scale=2,
     ),
     cost_processor=dict(
         cat_func="default",
         cost_aggregator=dict(
-            type="PSM",
+            type="GC",
             # the in planes of cost aggregation sub network
             in_planes=64,
         ),
     ),
-    cmn=dict(
-        num=3,
-        # variance = coefficient * ( 1 - confidence ) + init_value
-        # confidence estimation network coefficient
-        alpha=1.0,
-        # the lower bound of variance of distribution
-        beta=1.0,
-        losses=dict(
-            nll_loss=dict(
-                weights=(1.0, 0.7, 0.5),
-                weight=1.0,
-            ),
-        ),
-    ),
     disp_predictor=dict(
         mode="default",
-        alpha=1.0,  # the temperature coefficient of soft argmin
+        # the temperature coefficient of soft argmin
+        alpha=1.0,
     ),
     losses=dict(
         l1_loss=dict(
-            weights=(1.0, 0.7, 0.5),  # weights for different scale loss
+            # weights for different scale loss
+            weights=(1.0, ),
             weight=0.1,
         ),
-        focal_loss=dict(
-            weights=(1.0, 0.7, 0.5),
-            weight=1.0,
-            coefficient=5.0,
-        )
     ),
     eval=dict(
-        lower_bound=0,  # evaluate the disparity map within (lower_bound, upper_bound)
+        # evaluate the disparity map within (lower_bound, upper_bound)
+        lower_bound=0,
         upper_bound=max_disp,
-        eval_occlusion=True,  # evaluate the disparity map in occlusion area and not occlusion
-        is_cost_return=False,  # return the cost volume after regularization for visualization
-        is_cost_to_cpu=True,  # whether move the cost volume from cuda to cpu
+        # evaluate the disparity map in occlusion area and not occlusion
+        eval_occlusion=True,
+        # return the cost volume after regularization for visualization
+        is_cost_return=False,
+        # whether move the cost volume from cuda to cpu
+        is_cost_to_cpu=True,
     ),
 )
 
@@ -143,7 +130,7 @@ validate = True
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = '/data/exps/stereo/test_env'
+work_dir = '/data/exps/stereo/gcnet-sf'
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_10.pth')

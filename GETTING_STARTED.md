@@ -21,7 +21,7 @@ According to the [Linear Scaling Rule](https://arxiv.org/abs/1706.02677), you ne
 ### Train with a single GPU
 
 ```shell
-python tools/train.py PATH_TO_CFG_FILE
+python tools/train.py PATH_TO_CFG_FILE --gpus 1 --launcher none --validate
 ```
 
 If you want to specify the working directory in the command, you can add an argument `--work_dir ${YOUR_WORK_DIR}`.

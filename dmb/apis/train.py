@@ -69,9 +69,6 @@ def train_matcher(
     if logger is None:
         logger = get_root_logger(cfg.log_level)
 
-    import pdb
-    pdb.set_trace()
-
     # start training
     if distributed:
         _dist_train(model, train_dataset, cfg, eval_dataset, vis_dataset, validate=validate, logger=logger)
