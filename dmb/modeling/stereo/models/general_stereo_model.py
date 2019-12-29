@@ -28,39 +28,29 @@ class GeneralizedStereoModel(nn.Module):
         self.loss_evaluator = make_gsm_loss_evaluator(cfg)
 
     def forward(self, batch):
+        # parse batch
         ref_img, tgt_img = batch['leftImage'], batch['rightImage']
         target = batch['leftDisp'] if 'leftDisp' in batch else None
 
-        import pdb
-        pdb.set_trace()
-
+        # extract image feature
         ref_fms, tgt_fms = self.backbone(ref_img, tgt_img)
 
-        import pdb
-        pdb.set_trace()
-
+        # compute cost volume
         costs = self.cost_processor(ref_fms, tgt_fms, int(self.max_disp // self.scale))
 
-        import pdb
-        pdb.set_trace()
-
+        # disparity prediction
         disps = [self.disp_predictor(cost) for cost in costs]
 
-        import pdb
-        pdb.set_trace()
-
-        cost_vars = None
         if self.training:
             loss_dict = dict()
+            cost_vars = None
             if self.cmn is not None:
+                # confidence measurement network
                 cost_vars, cm_losses = self.cmn(costs, target)
                 loss_dict.update(cm_losses)
 
             gsm_loss_dict = self.loss_evaluator(disps, costs, target, cost_vars=cost_vars)
             loss_dict.update(gsm_loss_dict)
-
-            import pdb
-            pdb.set_trace()
 
             return {}, loss_dict
         else:
