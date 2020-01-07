@@ -56,7 +56,7 @@ annfile_root = osp.join(data_root, 'annotations')
 data = dict(
     # if disparity of datasets is sparse, default dataset is SceneFLow
     sparse=False,
-    imgs_per_gpu=1,
+    imgs_per_gpu=3,
     workers_per_gpu=4,
     train=dict(
         type=dataset_type,
@@ -122,7 +122,7 @@ apex = dict(
 )
 
 total_epochs = 20
-num_gpu = 4
+num_gpu = 8
 device_ids = range(num_gpu)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'

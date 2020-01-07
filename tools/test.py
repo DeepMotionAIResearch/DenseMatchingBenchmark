@@ -149,17 +149,9 @@ def parse_args():
     parser.add_argument('--checkpoint', help='checkpoint file')
     parser.add_argument('--out_dir', help='output result directory')
     parser.add_argument('--show', action='store_true', help='show results in images')
-    parser.add_argument(
-        '--evaluate',
-        action='store_true',
-        help='whether to evaluate the result')
-    parser.add_argument(
-        '--gpus',
-        type=int,
-        default=1,
-        help='number of gpus to use '
-             '(only applicable to non-distributed training)'
-    )
+    parser.add_argument('--evaluate', action='store_true', help='whether to evaluate the result')
+    parser.add_argument('--gpus', type=int, default=1,
+        help='number of gpus to use (only applicable to non-distributed training)')
     parser.add_argument(
         '--launcher',
         choices=['none', 'pytorch', 'slurm', 'mpi'],
@@ -167,12 +159,6 @@ def parse_args():
         help='job launcher'
     )
     parser.add_argument('--local_rank', type=int, default=0)
-
-    parser.add_argument('--out_path', help='needed by job client')
-    parser.add_argument('--in_path', help='needed by job client')
-    parser.add_argument('--pretrained_path', help='needed by job client')
-    parser.add_argument('--job_name', help='needed by job client')
-    parser.add_argument('--job_id', help='needed by job client')
 
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:

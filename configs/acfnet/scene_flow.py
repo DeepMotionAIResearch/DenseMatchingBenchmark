@@ -14,7 +14,7 @@ model = dict(
     cost_processor=dict(
         cat_func="default",
         cost_aggregator=dict(
-            type="PSM",
+            type="ACF",
             in_planes=64,  # the in planes of cost aggregation sub network
         ),
     ),
