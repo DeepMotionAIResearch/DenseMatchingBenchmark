@@ -4,47 +4,61 @@ import os.path as osp
 max_disp = 192
 model = dict(
     meta_architecture="GeneralizedStereoModel",
-    # max disparity
-    max_disp=max_disp,
-    # the model whether or not to use BatchNorm
-    batch_norm=True,
+    max_disp=max_disp,  # max disparity
+    batch_norm=True,  # the model whether or not to use BatchNorm
     backbone=dict(
         conv_body="PSMNet",
-        # the in planes of feature extraction backbone
-        in_planes=3,
-        # down-sample scale of the final feature map
-        scale=4,
+        in_planes=3,  # the in planes of feature extraction backbone
+        scale=4,  # down-sample scale of the final feature map
     ),
     cost_processor=dict(
         cat_func="default",
         cost_aggregator=dict(
-            type="PSM",
-            # the in planes of cost aggregation sub network
-            in_planes=64,
+            type="ACF",
+            in_planes=64,  # the in planes of cost aggregation sub network
+        ),
+    ),
+    cmn=dict(
+        num=3,
+        # variance = coefficient * ( 1 - confidence ) + init_value
+        # confidence estimation network coefficient
+        alpha=1.0,
+        # the lower bound of variance of distribution
+        beta=1.0,
+        losses=dict(
+            nll_loss=dict(
+                # weight for confidence loss with regard to other loss type
+                weight=8.0,
+                # weights for different scale loss
+                weights=(1.0, 0.7, 0.5),
+            ),
         ),
     ),
     disp_predictor=dict(
         mode="default",
-        # the temperature coefficient of soft argmin
-        alpha=1.0,
+        alpha=1.0,  # the temperature coefficient of soft argmin
     ),
     losses=dict(
         l1_loss=dict(
+            # weight for l1_loss with regard to other loss type
+            weight=0.1,
             # weights for different scale loss
             weights=(1.0, 0.7, 0.5),
-            weight=0.1,
         ),
+        focal_loss=dict(
+            # weight for stereo focal loss with regard to other loss type
+            weight=1.0,
+            # weights for different scale loss
+            weights=(1.0, 0.7, 0.5),
+            coefficient=5.0,
+        )
     ),
     eval=dict(
-        # evaluate the disparity map within (lower_bound, upper_bound)
-        lower_bound=0,
+        lower_bound=0,  # evaluate the disparity map within (lower_bound, upper_bound)
         upper_bound=max_disp,
-        # evaluate the disparity map in occlusion area and not occlusion
-        eval_occlusion=True,
-        # return the cost volume after regularization for visualization
-        is_cost_return=False,
-        # whether move the cost volume from cuda to cpu
-        is_cost_to_cpu=True,
+        eval_occlusion=True,  # evaluate the disparity map in occlusion area and not occlusion
+        is_cost_return=False,  # return the cost volume after regularization for visualization
+        is_cost_to_cpu=True,  # whether move the cost volume from cuda to cpu
     ),
 )
 
@@ -56,8 +70,8 @@ annfile_root = osp.join(data_root, 'annotations')
 data = dict(
     # if disparity of datasets is sparse, default dataset is SceneFLow
     sparse=False,
-    imgs_per_gpu=3,
-    workers_per_gpu=4,
+    imgs_per_gpu=1,
+    workers_per_gpu=16,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -97,40 +111,35 @@ lr_config = dict(
     warmup_ratio=1.0 / 3,
     step=[20]
 )
-checkpoint_config = dict(
-    interval=1
-)
+checkpoint_config = dict(interval=1)
 
 log_config = dict(
     interval=10,
     hooks=[
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook'),
-    ]
-)
+    ])
 
-# https://nvidia.github.io/apex/amp.html
-apex = dict(
-    # whether to use apex.synced_bn
-    synced_bn=True,
-    # whether to use apex for mixed precision training
-    use_mixed_precision=False,
-    # the model weight type: float16 or float32
-    type="float16",
-    # the factor when apex scales the loss value
-    loss_scale=16,
+apex = dict(  # https://nvidia.github.io/apex/amp.html
+    synced_bn=True,  # whether to use apex.synced_bn
+    use_mixed_precision=False,  # whether to use apex for mixed precision training
+    type="float16",  # the model weight type: float16 or float32
+    loss_scale=16,  # the factor when apex scales the loss value
 )
 
 total_epochs = 20
-num_gpu = 8
+
+num_gpu = 4
 device_ids = range(num_gpu)
 dist_params = dict(backend='nccl')
+
 log_level = 'INFO'
 validate = True
 load_from = None
 resume_from = None
+
 workflow = [('train', 1)]
-work_dir = '/data/exps/stereo/psmnet-sf'
+work_dir = '/data/exps/stereo/AcfNet-sf'
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_10.pth')

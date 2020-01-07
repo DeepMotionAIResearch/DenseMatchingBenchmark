@@ -2,6 +2,7 @@ from .smooth_l1_loss import DispSmoothL1Loss
 from .stereo_focal_loss import StereoFocalLoss
 
 
+# smooth l1 loss
 def make_sll_loss_evaluator(cfg):
     max_disp = cfg.model.max_disp
     weights = cfg.model.losses.l1_loss.weights
@@ -13,6 +14,7 @@ def make_sll_loss_evaluator(cfg):
     )
 
 
+# stereo focal loss
 def make_focal_loss_evaluator(cfg):
     max_disp = cfg.model.max_disp
     weights = cfg.model.losses.focal_loss.weights
@@ -50,6 +52,7 @@ class CombinedLossEvaluators(object):
         return comb_loss_dict
 
 
+# general stereo matching loss
 def make_gsm_loss_evaluator(cfg):
     loss_evaluators = dict()
     loss_weights = dict()

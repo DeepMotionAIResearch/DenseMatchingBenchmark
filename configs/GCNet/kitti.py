@@ -9,16 +9,16 @@ model = dict(
     # the model whether or not to use BatchNorm
     batch_norm=True,
     backbone=dict(
-        conv_body="PSMNet",
+        conv_body="GCNet",
         # the in planes of feature extraction backbone
         in_planes=3,
         # down-sample scale of the final feature map
-        scale=4,
+        scale=2,
     ),
     cost_processor=dict(
         cat_func="default",
         cost_aggregator=dict(
-            type="PSM",
+            type="GC",
             # the in planes of cost aggregation sub network
             in_planes=64,
         ),
@@ -55,7 +55,7 @@ annfile_root = osp.join(data_root, 'annotations')
 
 data = dict(
     # if disparity of datasets is sparse, default dataset is SceneFLow
-    sparse=False,
+    sparse=True,
     imgs_per_gpu=1,
     workers_per_gpu=4,
     train=dict(
@@ -92,17 +92,18 @@ optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 
 lr_config = dict(
     policy='step',
-    warmup='linear',
-    warmup_iters=500,
-    warmup_ratio=1.0 / 3,
-    step=[20]
+    warmup='constant',
+    warmup_iters=100,
+    warmup_ratio=1.0,
+    gamma=0.1,
+    step=[600, 1000]
 )
 checkpoint_config = dict(
-    interval=1
+    interval=25
 )
 
 log_config = dict(
-    interval=10,
+    interval=5,
     hooks=[
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook'),
@@ -121,7 +122,7 @@ apex = dict(
     loss_scale=16,
 )
 
-total_epochs = 600
+total_epochs = 1000
 # every n epoch evaluate
 validate_interval = 25
 
@@ -135,8 +136,8 @@ load_from = None
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = '/data/exps/stereo/gcnet-kitti'
+work_dir = '/data/exps/stereo/GCNet-kitti'
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_600.pth')
-out_dir = osp.join(work_dir, 'epoch_600')
+checkpoint = osp.join(work_dir, 'epoch_1000.pth')
+out_dir = osp.join(work_dir, 'epoch_1000')

@@ -4,58 +4,48 @@ import os.path as osp
 max_disp = 192
 model = dict(
     meta_architecture="GeneralizedStereoModel",
-    max_disp=max_disp,  # max disparity
-    batch_norm=True,  # the model whether or not to use BatchNorm
+    # max disparity
+    max_disp=max_disp,
+    # the model whether or not to use BatchNorm
+    batch_norm=True,
     backbone=dict(
         conv_body="PSMNet",
-        in_planes=3,  # the in planes of feature extraction backbone
-        scale=4,  # down-sample scale of the final feature map
+        # the in planes of feature extraction backbone
+        in_planes=3,
+        # down-sample scale of the final feature map
+        scale=4,
     ),
     cost_processor=dict(
         cat_func="default",
         cost_aggregator=dict(
-            type="ACF",
-            in_planes=64,  # the in planes of cost aggregation sub network
-        ),
-    ),
-    cmn=dict(
-        num=3,
-        # variance = coefficient * ( 1 - confidence ) + init_value
-        # confidence estimation network coefficient
-        alpha=1.0,
-        # the lower bound of variance of distribution
-        beta=1.0,
-        losses=dict(
-            nll_loss=dict(
-                weight=1.0,
-                # weights for different scale loss
-                weights=(1.0, 0.7, 0.5),
-            ),
+            type="PSM",
+            # the in planes of cost aggregation sub network
+            in_planes=64,
         ),
     ),
     disp_predictor=dict(
         mode="default",
-        alpha=1.0,  # the temperature coefficient of soft argmin
+        # the temperature coefficient of soft argmin
+        alpha=1.0,
     ),
     losses=dict(
         l1_loss=dict(
-            weight=1.0,
             # weights for different scale loss
             weights=(1.0, 0.7, 0.5),
+            # weight for l1_loss with regard to other loss type
+            weight=1.0,
         ),
-        focal_loss=dict(
-            weight=1.0,
-            # weights for different scale loss
-            weights=(1.0, 0.7, 0.5),
-            coefficient=5.0,
-        )
     ),
     eval=dict(
-        lower_bound=0,  # evaluate the disparity map within (lower_bound, upper_bound)
+        # evaluate the disparity map within (lower_bound, upper_bound)
+        lower_bound=0,
         upper_bound=max_disp,
-        eval_occlusion=True,  # evaluate the disparity map in occlusion area and not occlusion
-        is_cost_return=False,  # return the cost volume after regularization for visualization
-        is_cost_to_cpu=True,  # whether move the cost volume from cuda to cpu
+        # evaluate the disparity map in occlusion area and not occlusion
+        eval_occlusion=True,
+        # return the cost volume after regularization for visualization
+        is_cost_return=False,
+        # whether move the cost volume from cuda to cpu
+        is_cost_to_cpu=True,
     ),
 )
 
@@ -66,9 +56,9 @@ annfile_root = osp.join(data_root, 'annotations')
 
 data = dict(
     # if disparity of datasets is sparse, default dataset is SceneFLow
-    sparse=False,
-    imgs_per_gpu=1,
-    workers_per_gpu=4,
+    sparse=True,
+    imgs_per_gpu=3,
+    workers_per_gpu=16,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -103,17 +93,18 @@ optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 
 lr_config = dict(
     policy='step',
-    warmup='linear',
-    warmup_iters=500,
-    warmup_ratio=1.0 / 3,
-    step=[20]
+    warmup='constant',
+    warmup_iters=100,
+    warmup_ratio=1.0,
+    gamma=0.1,
+    step=[600, 1000]
 )
 checkpoint_config = dict(
-    interval=1
+    interval=25
 )
 
 log_config = dict(
-    interval=10,
+    interval=5,
     hooks=[
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook'),
@@ -132,7 +123,7 @@ apex = dict(
     loss_scale=16,
 )
 
-total_epochs = 600
+total_epochs = 1000
 # every n epoch evaluate
 validate_interval = 25
 
@@ -146,8 +137,8 @@ load_from = None
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = '/data/exps/stereo/acfnet-kitti'
+work_dir = '/data/exps/stereo/PSMNet-kitti'
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_600.pth')
-out_dir = osp.join(work_dir, 'epoch_600')
+checkpoint = osp.join(work_dir, 'epoch_1000.pth')
+out_dir = osp.join(work_dir, 'epoch_1000')
