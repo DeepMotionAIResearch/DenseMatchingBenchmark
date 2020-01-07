@@ -32,7 +32,8 @@ model = dict(
         l1_loss=dict(
             # weights for different scale loss
             weights=(1.0, 0.7, 0.5),
-            weight=0.1,
+            # weight for l1_loss with regard to other loss type
+            weight=1.0,
         ),
     ),
     eval=dict(
@@ -49,19 +50,19 @@ model = dict(
 )
 
 # dataset settings
-dataset_type = 'SceneFlow'
+dataset_type = 'KITTI-2015'
 data_root = 'datasets/{}/'.format(dataset_type)
 annfile_root = osp.join(data_root, 'annotations')
 
 data = dict(
     # if disparity of datasets is sparse, default dataset is SceneFLow
-    sparse=False,
-    imgs_per_gpu=1,
-    workers_per_gpu=4,
+    sparse=True,
+    imgs_per_gpu=3,
+    workers_per_gpu=16,
     train=dict(
         type=dataset_type,
         data_root=data_root,
-        annfile=osp.join(annfile_root, 'cleanpass_train.json'),
+        annfile=osp.join(annfile_root, 'full_train.json'),
         input_shape=[256, 512],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
@@ -70,8 +71,8 @@ data = dict(
     eval=dict(
         type=dataset_type,
         data_root=data_root,
-        annfile=osp.join(annfile_root, 'cleanpass_test.json'),
-        input_shape=[544, 960],
+        annfile=osp.join(annfile_root, 'full_test.json'),
+        input_shape=[384, 1248],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
         use_right_disp=False,
@@ -79,8 +80,8 @@ data = dict(
     test=dict(
         type=dataset_type,
         data_root=data_root,
-        annfile=osp.join(annfile_root, 'cleanpass_test.json'),
-        input_shape=[544, 960],
+        annfile=osp.join(annfile_root, 'full_test.json'),
+        input_shape=[384, 1248],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
         use_right_disp=False,
@@ -92,17 +93,18 @@ optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 
 lr_config = dict(
     policy='step',
-    warmup='linear',
-    warmup_iters=500,
-    warmup_ratio=1.0 / 3,
-    step=[20]
+    warmup='constant',
+    warmup_iters=100,
+    warmup_ratio=1.0,
+    gamma=0.1,
+    step=[600, 1000]
 )
 checkpoint_config = dict(
-    interval=1
+    interval=25
 )
 
 log_config = dict(
-    interval=10,
+    interval=5,
     hooks=[
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook'),
@@ -121,17 +123,22 @@ apex = dict(
     loss_scale=16,
 )
 
-total_epochs = 20
+total_epochs = 1000
+# every n epoch evaluate
+validate_interval = 25
+
 num_gpu = 4
 device_ids = range(num_gpu)
+
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
 load_from = None
 resume_from = None
+
 workflow = [('train', 1)]
-work_dir = '/data/exps/stereo/psmnet-sf'
+work_dir = '/data/exps/stereo/PSMNet-kitti'
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_10.pth')
-out_dir = osp.join(work_dir, 'epoch_10')
+checkpoint = osp.join(work_dir, 'epoch_1000.pth')
+out_dir = osp.join(work_dir, 'epoch_1000')
