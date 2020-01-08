@@ -58,11 +58,7 @@ data = dict(
     # if disparity of datasets is sparse, default dataset is SceneFLow
     sparse=False,
     imgs_per_gpu=3,
-<<<<<<< HEAD:configs/psmnet/scene_flow.py
-    workers_per_gpu=4,
-=======
     workers_per_gpu=16,
->>>>>>> 4c506655cd435c29345dc9ec55581fa65d22efa9:configs/PSMNet/scene_flow.py
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -126,13 +122,8 @@ apex = dict(
     loss_scale=16,
 )
 
-<<<<<<< HEAD:configs/psmnet/scene_flow.py
-total_epochs = 20
-num_gpu = 8
-=======
 total_epochs = 10
-num_gpu = 4
->>>>>>> 4c506655cd435c29345dc9ec55581fa65d22efa9:configs/PSMNet/scene_flow.py
+num_gpu = 8
 device_ids = range(num_gpu)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
