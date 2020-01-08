@@ -150,7 +150,7 @@ def _dist_train(
         interval = cfg.get('validate_interval', 1)
         if eval_dataset is not None:
             logger.info("Register Evaluation Hook...")
-            runner.register_hook(DistStereoEvalHook(eval_dataset, interval))
+            runner.register_hook(DistStereoEvalHook(cfg, eval_dataset, interval))
         if vis_dataset is not None:
             logger.info("Register Visulization hook...")
             runner.register_hook(DistStereoVisHook(vis_dataset, cfg, interval))

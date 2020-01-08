@@ -15,6 +15,8 @@ from mmcv.parallel import scatter, collate
 
 from dmb.visualization.stereo import ShowConf
 
+from .eval import remove_padding, do_evaluation
+
 
 def to_cpu(tensor):
     error_msg = "Tensor must contain tensors, dicts or lists; found {}"
@@ -30,11 +32,11 @@ def to_cpu(tensor):
 
 class DistEvalHook(Hook):
 
-    def __init__(self, dataset, interval=1):
-        if isinstance(dataset, Dataset):
-            self.dataset = dataset
-        else:
-            raise TypeError("dataset must be a Dataset object, not {}".format(type(dataset)))
+    def __init__(self, cfg, dataset, interval=1):
+        self.cfg = cfg.copy()
+        assert isinstance(dataset, Dataset), \
+            "dataset must be a Dataset object, not {}".format(type(dataset))
+        self.dataset = dataset
         self.interval = interval
 
     def after_train_epoch(self, runner):
@@ -61,7 +63,36 @@ class DistEvalHook(Hook):
 
             # compute output
             with torch.no_grad():
-                result = runner.model(data_gpu)
+                result, _ = runner.model(data_gpu)
+                disps = result['disps']
+                costs = result['costs']
+
+                ori_size = data_gpu['original_size']
+                target = data_gpu['leftDisp'] if 'leftDisp' in data_gpu else None
+                target = remove_padding(target, ori_size)
+                error_dict = do_evaluation(
+                    disps[0], target, self.cfg.model.eval.lower_bound, self.cfg.model.eval.upper_bound)
+
+                if self.cfg.model.eval.eval_occlusion and 'leftDisp' in data_gpu and 'rightDisp' in data_gpu:
+                    data_gpu['leftDisp'] = remove_padding(data_gpu['leftDisp'], ori_size)
+                    data_gpu['rightDisp'] = remove_padding(data_gpu['rightDisp'], ori_size)
+
+                    occ_error_dict = do_occlusion_evaluation(
+                        disps[0], data_gpu['leftDisp'], data_gpu['rightDisp'],
+                        self.cfg.model.eval.lower_bound, self.cfg.model.eval.upper_bound)
+                    error_dict.update(occ_error_dict)
+
+                result = {
+                    'Disparity': disps,
+                    'GroundTruth': target,
+                    'Error': error_dict,
+                }
+
+                if self.cfg.model.eval.is_cost_return:
+                    if self.cfg.model.eval.is_cost_to_cpu:
+                        costs = [cost.cpu() for cost in costs]
+                    result['Cost'] = costs
+
             # if result contains image, as the process advanced, the cuda cache explodes soon.
             result = to_cpu(result)
 
@@ -69,6 +100,7 @@ class DistEvalHook(Hook):
             filter_result['Error'] = result['Error']
             if 'Confidence' in result:
                 filter_result['Confidence'] = self.process_conf(result, bins_number=100)
+
             results[idx] = filter_result
 
             batch_size = runner.world_size
@@ -100,8 +132,8 @@ class DistEvalHook(Hook):
 
 class DistStereoEvalHook(DistEvalHook):
 
-    def __init__(self, dataset, interval=1):
-        super(DistStereoEvalHook, self).__init__(dataset, interval)
+    def __init__(self, cfg, dataset, interval=1):
+        super(DistStereoEvalHook, self).__init__(cfg, dataset, interval)
         self.conf_tool = ShowConf()
 
     def evaluate(self, runner, results):
