@@ -69,8 +69,31 @@ def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
 
         data.update(notNoneData)
 
+        # TODO: evaluate after generate all predictions!
         with torch.no_grad():
-            result = model(data)
+            result, _ = model(data)
+            disps = result['disps']
+
+            ori_size = data['original_size']
+            target = data_gpu['leftDisp'] if 'leftDisp' in data else None
+            target = remove_padding(target, ori_size)
+            error_dict = do_evaluation(
+                disps[0], target, cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
+
+            if cfg.model.eval.eval_occlusion and 'leftDisp' in data and 'rightDisp' in data:
+                data['leftDisp'] = remove_padding(data['leftDisp'], ori_size)
+                data['rightDisp'] = remove_padding(data['rightDisp'], ori_size)
+
+                occ_error_dict = do_occlusion_evaluation(
+                    disps[0], data['leftDisp'], data['rightDisp'],
+                    cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
+                error_dict.update(occ_error_dict)
+
+            result = {
+                'Disparity': disps,
+                'GroundTruth': target,
+                'Error': error_dict,
+            }
 
         filter_result = {}
         filter_result.update(Error=result['Error'])
@@ -108,10 +131,7 @@ def collect_results(result_part, size, tmpdir=None):
     if tmpdir is None:
         MAX_LEN = 512
         # 32 is whitespace
-        dir_tensor = torch.full((MAX_LEN,),
-                                32,
-                                dtype=torch.uint8,
-                                device='cuda')
+        dir_tensor = torch.full((MAX_LEN,), 32, dtype=torch.uint8, device='cuda')
         if rank == 0:
             tmpdir = tempfile.mkdtemp()
             tmpdir = torch.Tensor(bytearray(tmpdir.encode()), dtype=torch.uint8, device='cuda')
@@ -120,6 +140,7 @@ def collect_results(result_part, size, tmpdir=None):
         tmpdir = dir_tensor.cpu().numpy().tobytes().decode().rstrip()
     else:
         mmcv.mkdir_or_exist(tmpdir)
+
     # dump the part result to the dir
     mmcv.dump(result_part, osp.join(tmpdir, 'part_{}.pkl'.format(rank)))
     dist.barrier()

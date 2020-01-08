@@ -6,10 +6,10 @@ from imageio import imread
 from dmb.data.datasets.stereo.base import StereoDatasetBase
 
 
-class KittiDataset(StereoDatasetBase):
+class KittiDatasetBase(StereoDatasetBase):
 
     def __init__(self, annFile, root, transform=None):
-        super(KittiDataset, self).__init__(annFile, root, transform)
+        super(KittiDatasetBase, self).__init__(annFile, root, transform)
 
     def Loader(self, item):
         # only take first three RGB channel no matter in RGB or RGBA format
