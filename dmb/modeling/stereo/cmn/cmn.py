@@ -34,6 +34,7 @@ class ConfHead(nn.Module):
         return conf
 
 
+# confidence measure network
 class Cmn(nn.Module):
 
     def __init__(self, cfg, in_planes, num, alpha, beta):

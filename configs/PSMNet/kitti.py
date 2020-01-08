@@ -133,7 +133,7 @@ device_ids = range(num_gpu)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
-load_from = None
+load_from = '/data/exps/stereo/PSMNet-sf/epoch_10.pth'
 resume_from = None
 
 workflow = [('train', 1)]

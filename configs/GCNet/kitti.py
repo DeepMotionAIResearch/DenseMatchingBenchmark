@@ -57,7 +57,7 @@ data = dict(
     # if disparity of datasets is sparse, default dataset is SceneFLow
     sparse=True,
     imgs_per_gpu=1,
-    workers_per_gpu=4,
+    workers_per_gpu=16,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -132,7 +132,7 @@ device_ids = range(num_gpu)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
-load_from = None
+load_from = '/data/exps/stereo/GCNet-sf/epoch_10.pth'
 resume_from = None
 
 workflow = [('train', 1)]

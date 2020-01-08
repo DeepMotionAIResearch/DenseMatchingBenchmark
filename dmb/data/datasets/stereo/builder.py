@@ -37,7 +37,6 @@ def build_dataset(cfg, type):
     data_root = cfg.data[type].data_root
     data_type = cfg.data[type].type
     annFile = cfg.data[type].annfile
-    toRAM = cfg.data[type].get('toRAM', False)
 
     is_train = True if type == 'train' else False
     transforms = build_transforms(cfg, type, is_train=is_train)
@@ -46,9 +45,9 @@ def build_dataset(cfg, type):
         dataset = SceneFlowDataset(annFile, data_root, transforms)
     elif 'KITTI' in data_type:
         if '2012' in data_type:
-            dataset = Kitti2012Dataset(annFile, data_root, transforms, toRAM=toRAM)
+            dataset = Kitti2012Dataset(annFile, data_root, transforms)
         elif '2015' in data_type:
-            dataset = Kitti2015Dataset(annFile, data_root, transforms, toRAM=toRAM)
+            dataset = Kitti2015Dataset(annFile, data_root, transforms)
         else:
             raise ValueError("invalid data type: {}".format(data_type))
     else:

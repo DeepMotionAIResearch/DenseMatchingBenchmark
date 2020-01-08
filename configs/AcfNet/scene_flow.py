@@ -19,8 +19,9 @@ model = dict(
         ),
     ),
     cmn=dict(
+        # the number of replicated confidence measure network
         num=3,
-        # variance = coefficient * ( 1 - confidence ) + init_value
+        # variance = alpha * ( 1 - confidence ) + beta
         # confidence estimation network coefficient
         alpha=1.0,
         # the lower bound of variance of distribution
