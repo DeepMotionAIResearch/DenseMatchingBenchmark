@@ -22,6 +22,7 @@ from dmb.utils.env import init_dist, get_root_logger
 from dmb.modeling.stereo import build_stereo_model as build_model
 from dmb.data.datasets.stereo import build_dataset
 from dmb.apis.inference import save_result
+from dmb.data.datasets.evaluation.stereo.eval import remove_padding, do_evaluation, do_occlusion_evaluation
 from dmb.visualization.stereo import sparsification_plot
 
 
@@ -75,7 +76,8 @@ def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
             disps = result['disps']
 
             ori_size = data['original_size']
-            target = data_gpu['leftDisp'] if 'leftDisp' in data else None
+            disps = remove_padding(disps, ori_size)
+            target = data['leftDisp'] if 'leftDisp' in data else None
             target = remove_padding(target, ori_size)
             error_dict = do_evaluation(
                 disps[0], target, cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)

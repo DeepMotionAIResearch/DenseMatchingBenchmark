@@ -68,6 +68,7 @@ class DistEvalHook(Hook):
                 costs = result['costs']
 
                 ori_size = data_gpu['original_size']
+                disps = remove_padding(disps, ori_size)
                 target = data_gpu['leftDisp'] if 'leftDisp' in data_gpu else None
                 target = remove_padding(target, ori_size)
                 error_dict = do_evaluation(
