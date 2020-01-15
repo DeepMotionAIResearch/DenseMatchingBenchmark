@@ -51,6 +51,7 @@ def single_gpu_test(model, dataset, cfg, show=False):
 
 def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
     model.eval()
+
     results = []
     rank, world_size = get_dist_info()
     if rank == 0:
@@ -78,19 +79,23 @@ def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
 
             ori_size = data['original_size']
             disps = remove_padding(disps, ori_size)
-            target = data['leftDisp'] if 'leftDisp' in data else None
-            target = remove_padding(target, ori_size)
-            error_dict = do_evaluation(
-                disps[0], target, cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
 
-            if cfg.model.eval.eval_occlusion and 'leftDisp' in data and 'rightDisp' in data:
-                data['leftDisp'] = remove_padding(data['leftDisp'], ori_size)
-                data['rightDisp'] = remove_padding(data['rightDisp'], ori_size)
+            target = None
+            error_dict = dict()
+            if 'leftDisp' in data:
+                target = data['leftDisp']
+                target = remove_padding(target, ori_size)
+                error_dict = do_evaluation(
+                    disps[0], target, cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
 
-                occ_error_dict = do_occlusion_evaluation(
-                    disps[0], data['leftDisp'], data['rightDisp'],
-                    cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
-                error_dict.update(occ_error_dict)
+                if cfg.model.eval.eval_occlusion and 'rightDisp' in data:
+                    data['leftDisp'] = remove_padding(data['leftDisp'], ori_size)
+                    data['rightDisp'] = remove_padding(data['rightDisp'], ori_size)
+
+                    occ_error_dict = do_occlusion_evaluation(
+                        disps[0], data['leftDisp'], data['rightDisp'],
+                        cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
+                    error_dict.update(occ_error_dict)
 
             result = {
                 'Disparity': disps,
