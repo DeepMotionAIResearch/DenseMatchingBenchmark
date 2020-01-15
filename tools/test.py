@@ -22,7 +22,8 @@ from dmb.utils.env import init_dist, get_root_logger
 from dmb.modeling.stereo import build_stereo_model as build_model
 from dmb.data.datasets.stereo import build_dataset
 from dmb.apis.inference import save_result
-from dmb.data.datasets.evaluation.stereo.eval import remove_padding, do_evaluation, do_occlusion_evaluation
+from dmb.data.datasets.evaluation.stereo.eval import remove_padding, \
+    do_evaluation, do_occlusion_evaluation
 from dmb.visualization.stereo import sparsification_plot
 
 
@@ -146,6 +147,7 @@ def collect_results(result_part, size, tmpdir=None):
     # dump the part result to the dir
     mmcv.dump(result_part, osp.join(tmpdir, 'part_{}.pkl'.format(rank)))
     dist.barrier()
+
     # collect all parts
     if rank != 0:
         return None
@@ -155,14 +157,17 @@ def collect_results(result_part, size, tmpdir=None):
         for i in range(world_size):
             part_file = osp.join(tmpdir, 'part_{}.pkl'.format(i))
             part_list.append(mmcv.load(part_file))
+
         # sort the results
         ordered_results = []
         for res in zip(*part_list):
             ordered_results.extend(list(res))
+
         # the dataloader may pad some samples
         ordered_results = ordered_results[:size]
         # remove tmp dir
         shutil.rmtree(tmpdir)
+
         return ordered_results
 
 

@@ -58,7 +58,7 @@ data = dict(
     # if disparity of datasets is sparse, default dataset is SceneFLow
     sparse=False,
     imgs_per_gpu=1,
-    workers_per_gpu=16,
+    workers_per_gpu=8,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -81,7 +81,7 @@ data = dict(
         type=dataset_type,
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_test.json'),
-        input_shape=[544, 960],
+        input_shape=[256, 512],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
         use_right_disp=False,
