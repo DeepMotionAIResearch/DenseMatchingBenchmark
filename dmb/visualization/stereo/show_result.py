@@ -96,7 +96,7 @@ class ShowDisp(object):
         # change every disparity map to color map
         error_msg = "Disparity must contain tensors, dicts or lists; found {}"
         if isinstance(Disp, torch.Tensor):
-            return tensor2color(Disp.clone(), max_disp)
+            return tensor_to_color(Disp.clone(), max_disp)
         elif isinstance(Disp, container_abcs.Mapping):
             return {key: self.vis_per_disp(Disp[key], max_disp) for key in Disp}
         elif isinstance(Disp, container_abcs.Sequence):
