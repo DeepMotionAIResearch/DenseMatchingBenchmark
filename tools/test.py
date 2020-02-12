@@ -4,6 +4,9 @@ import os.path as osp
 import shutil
 import tempfile
 
+import sys
+sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
+
 import numpy as np
 from imageio import imread
 
@@ -22,8 +25,7 @@ from dmb.utils.env import init_dist, get_root_logger
 from dmb.modeling.stereo import build_stereo_model as build_model
 from dmb.data.datasets.stereo import build_dataset
 from dmb.apis.inference import save_result
-from dmb.data.datasets.evaluation.stereo.eval import remove_padding, \
-    do_evaluation, do_occlusion_evaluation
+from dmb.data.datasets.evaluation.stereo.eval import remove_padding, do_evaluation, do_occlusion_evaluation
 from dmb.visualization.stereo import sparsification_plot
 
 
@@ -51,7 +53,6 @@ def single_gpu_test(model, dataset, cfg, show=False):
 
 def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
     model.eval()
-
     results = []
     rank, world_size = get_dist_info()
     if rank == 0:
@@ -74,34 +75,42 @@ def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
 
         # TODO: evaluate after generate all predictions!
         with torch.no_grad():
-            result, _ = model(data)
-            disps = result['disps']
+            ori_result, _ = model(data)
+
+            # remove the padding when data augmentation
+            disps = ori_result['disps']
 
             ori_size = data['original_size']
             disps = remove_padding(disps, ori_size)
-
-            target = None
-            error_dict = dict()
-            if 'leftDisp' in data:
-                target = data['leftDisp']
+            target = data['leftDisp'] if 'leftDisp' in data else None
+            if target is not None:
                 target = remove_padding(target, ori_size)
-                error_dict = do_evaluation(
-                    disps[0], target, cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
 
-                if cfg.model.eval.eval_occlusion and 'rightDisp' in data:
-                    data['leftDisp'] = remove_padding(data['leftDisp'], ori_size)
-                    data['rightDisp'] = remove_padding(data['rightDisp'], ori_size)
+            # In this framework, we always set the first result, e.g., disparity map, as the best.
+            error_dict = do_evaluation(
+                disps[0], target, cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
 
-                    occ_error_dict = do_occlusion_evaluation(
-                        disps[0], data['leftDisp'], data['rightDisp'],
-                        cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
-                    error_dict.update(occ_error_dict)
+            if cfg.model.eval.eval_occlusion and 'leftDisp' in data and 'rightDisp' in data:
+                data['leftDisp'] = remove_padding(data['leftDisp'], ori_size)
+                data['rightDisp'] = remove_padding(data['rightDisp'], ori_size)
+
+                occ_error_dict = do_occlusion_evaluation(
+                    disps[0], data['leftDisp'], data['rightDisp'],
+                    cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
+                error_dict.update(occ_error_dict)
 
             result = {
                 'Disparity': disps,
                 'GroundTruth': target,
                 'Error': error_dict,
             }
+
+            if hasattr(cfg.model, 'cmn'):
+                # confidence measurement network
+                confs = ori_result['confs']
+                confs = remove_padding(confs, ori_size)
+                result.update(Confidence=confs)
+
 
         filter_result = {}
         filter_result.update(Error=result['Error'])
@@ -152,7 +161,6 @@ def collect_results(result_part, size, tmpdir=None):
     # dump the part result to the dir
     mmcv.dump(result_part, osp.join(tmpdir, 'part_{}.pkl'.format(rank)))
     dist.barrier()
-
     # collect all parts
     if rank != 0:
         return None
@@ -162,17 +170,14 @@ def collect_results(result_part, size, tmpdir=None):
         for i in range(world_size):
             part_file = osp.join(tmpdir, 'part_{}.pkl'.format(i))
             part_list.append(mmcv.load(part_file))
-
         # sort the results
         ordered_results = []
         for res in zip(*part_list):
             ordered_results.extend(list(res))
-
         # the dataloader may pad some samples
         ordered_results = ordered_results[:size]
         # remove tmp dir
         shutil.rmtree(tmpdir)
-
         return ordered_results
 
 
@@ -181,8 +186,8 @@ def parse_args():
     parser.add_argument('config', help='train config file path')
     parser.add_argument('--checkpoint', help='checkpoint file')
     parser.add_argument('--out_dir', help='output result directory')
-    parser.add_argument('--show', action='store_true', help='show results in images')
-    parser.add_argument('--evaluate', action='store_true', help='whether to evaluate the result')
+    parser.add_argument('--show', type=bool, default=False, help='show results in images')
+    parser.add_argument('--validate', action='store_true', help='whether to evaluate the result')
     parser.add_argument('--gpus', type=int, default=1,
         help='number of gpus to use (only applicable to non-distributed training)')
     parser.add_argument(
@@ -258,7 +263,7 @@ def main():
         logger.info('\nwriting results to {}'.format(result_path))
         mmcv.dump(outputs, result_path)
 
-        if args.evaluate:
+        if args.validate:
             error_log_buffer = LogBuffer()
             for result in outputs:
                 error_log_buffer.update(result['Error'])

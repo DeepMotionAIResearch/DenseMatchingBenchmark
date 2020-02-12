@@ -1,7 +1,9 @@
 import torch.nn as nn
 
 from .utils.cat_fms import CAT_FUNCS
+from .utils.dif_fms import DIF_FUNCS
 from .aggregators import build_cost_aggregator
+
 
 
 class CostProcessor(nn.Module):
@@ -12,17 +14,22 @@ class CostProcessor(nn.Module):
     def forward(self, *input):
         raise NotImplementedError
 
-
+# Concatenate left and right feature to form cost volume
 class CatCostProcessor(CostProcessor):
 
-    def __init__(self, cat_func, aggregator):
+    def __init__(self, cfg, aggregator):
         super(CatCostProcessor, self).__init__()
-        self.cat_func = cat_func
+        cat_func = cfg.model.cost_processor.cost_computation.get('type', 'default')
+        self.cat_func = CAT_FUNCS[cat_func]
+
+        self.default_args = cfg.model.cost_processor.cost_computation
+        self.default_args.pop('type')
+
         self.aggregator = aggregator
 
-    def forward(self, ref_fms, tgt_fms, max_disp):
+    def forward(self, ref_fms, tgt_fms, disp_sample=None):
         # 1. build raw cost by concat
-        cat_cost = self.cat_func(ref_fms, tgt_fms, max_disp)
+        cat_cost = self.cat_func(ref_fms, tgt_fms, disp_sample=disp_sample, **self.default_args)
 
         # 2. aggregate cost by 3D-hourglass
         costs = self.aggregator(cat_cost)
@@ -30,11 +37,46 @@ class CatCostProcessor(CostProcessor):
         return costs
 
 
+# Use the difference between left and right feature to form cost volume
+class DifCostProcessor(CostProcessor):
+
+    def __init__(self, cfg, aggregator):
+        super(DifCostProcessor, self).__init__()
+        dif_func = cfg.model.cost_processor.cost_computation.get('type', 'default')
+        self.dif_func = DIF_FUNCS[dif_func]
+
+        self.default_args = cfg.model.cost_processor.cost_computation
+        self.default_args.pop('type')
+
+        self.aggregator = aggregator
+
+    def forward(self, ref_fms, tgt_fms, disp_sample=None):
+        # 1. build raw cost by concat
+        cat_cost = self.dif_func(ref_fms, tgt_fms, disp_sample=disp_sample, **self.default_args)
+
+        # 2. aggregate cost by 3D-hourglass
+        costs = self.aggregator(cat_cost)
+
+        return costs
+
+
+PROCESSORS = {
+    'DIF': DifCostProcessor,
+    'CAT': CatCostProcessor,
+}
+
 def build_cost_processor(cfg):
-    cat_func = CAT_FUNCS[cfg.model.cost_processor.cat_func]
+    proc_type = cfg.model.cost_processor.type
+    assert proc_type in PROCESSORS, "cost_processor type not found, excepted: {}," \
+                                    "but got {}".format(PROCESSORS.keys(), proc_type)
+
     aggregator = build_cost_aggregator(cfg)
 
-    return CatCostProcessor(
-        cat_func=cat_func,
+    args = dict(
+        cfg=cfg,
         aggregator=aggregator,
     )
+    processor = PROCESSORS[proc_type](**args)
+
+    return processor
+

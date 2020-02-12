@@ -1,44 +1,54 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 from dmb.modeling.stereo.losses.utils import LaplaceDisp2Prob, GaussianDisp2Prob, OneHotDisp2Prob
 
 
 class StereoFocalLoss(object):
     """
-    Under the same start disparity and maximum disparity, calculating all estimated cost volumes' loss
+    Under the same start disparity and maximum disparity, calculating all estimated cost volumes' loss.
         Args:
             max_disp (int): the max of Disparity. default: 192
             start_disp (int): the start searching disparity index, usually be 0
-            dilation (int): the step between near disparity index,
+            dilation (optional, int): the step between near disparity index,
                 it mainly used in gt probability volume generation
-            weights (list of float or None): weight for each scale of estCost.
-            focal_coefficient (float): stereo focal loss coefficient,
+            weights (list of float or None): loss weight for each scale of estCost.
+            focal_coefficient (float): stereo focal loss focal coefficient,
                 details please refer to paper. default: 0.0
             sparse (bool): whether the ground-truth disparity is sparse,
                 for example, KITTI is sparse, but SceneFlow is not. default: False
+
         Inputs:
             estCost (Tensor or list of Tensor): the estimated cost volume,
-                in [BatchSize, max_disp, Height, Width] layout
+                in [BatchSize, disp_sample_number, Height, Width] layout,
+                the disp_sample_number can be: (max_disp + dilation - 1) / dilation or disp_index.shape[1]
             gtDisp (Tensor): the ground truth disparity map,
                 in [BatchSize, 1, Height, Width] layout.
-            variance (Tensor or list of Tensor): the variance of distribution,
+            variance (int, Tensor or list of Tensor): the variance of distribution,
                 details please refer to paper, in [BatchSize, 1, Height, Width] layout.
+            disp_sample (optional, (Tensor or list of Tensor)):
+                if not None, direct provide the disparity samples for each pixel
+                in [BatchSize, disp_sample_number, Height, Width] layout
+
         Outputs:
             weighted_loss_all_level (Tensor), the weighted loss of all levels
+
         Note:
             Before calculate loss, the estCost shouldn't be normalized,
               because we will use softmax for normalization
     """
 
     def __init__(
-            self, max_disp=192, start_disp=0,
+            self, max_disp, start_disp=0,
             dilation=1, weights=None,
-            focal_coefficient=0.0, sparse=False
+            focal_coefficient=0.0,
+            sparse=False
     ):
         self.max_disp = max_disp
         self.start_disp = start_disp
+        self.end_disp = self.max_disp + self.start_disp - 1
         self.dilation = dilation
         self.weights = weights
         self.focal_coefficient = focal_coefficient
@@ -50,12 +60,12 @@ class StereoFocalLoss(object):
             # dense disparity ==> avg_pooling
             self.scale_func = F.adaptive_avg_pool2d
 
-    def loss_per_level(self, estCost, gtDisp, variance, dilation):
-        N, C, H, W = estCost.shape
+    def loss_per_level(self, estCost, gtDisp, variance, dilation, disp_sample):
+        B, C, H, W = estCost.shape
         scaled_gtDisp = gtDisp.clone()
         scale = 1.0
         if gtDisp.shape[-2] != H or gtDisp.shape[-1] != W:
-            # compute scale per level and scale gtDisp
+            # compute scale factor for per level and scale gtDisp
             scale = gtDisp.shape[-1] / (W * 1.0)
             scaled_gtDisp = gtDisp.clone() / scale
 
@@ -76,8 +86,8 @@ class StereoFocalLoss(object):
             # transfer disparity map to probability map
             mask_scaled_gtDisp = scaled_gtDisp * mask
             scaled_gtProb = LaplaceDisp2Prob(
-                int(self.max_disp / scale), mask_scaled_gtDisp, variance=variance,
-                start_disp=self.start_disp, dilation=dilation
+                mask_scaled_gtDisp, max_disp=int(self.max_disp / scale), variance=variance,
+                start_disp=self.start_disp, dilation=dilation, disp_sample=disp_sample
             ).getProb()
 
         # stereo focal loss
@@ -87,7 +97,7 @@ class StereoFocalLoss(object):
 
         return loss
 
-    def __call__(self, estCost, gtDisp, variance):
+    def __call__(self, estCost, gtDisp, variance, disp_sample=None):
         if not isinstance(estCost, (list, tuple)):
             estCost = [estCost]
 
@@ -103,11 +113,18 @@ class StereoFocalLoss(object):
         if not isinstance(variance, (list, tuple)):
             variance = [variance] * len(estCost)
 
+        if disp_sample is None:
+            disp_sample = [disp_sample] * len(estCost)
+        else:
+            if not isinstance(disp_sample, (list, tuple)):
+                # Use same disparity samples for each estimated cost volume
+                disp_sample = [disp_sample] * len(estCost)
+
         # compute loss for per level
         loss_all_level = []
-        for est_cost_per_lvl, var, dt in zip(estCost, variance, self.dilation):
+        for est_cost_per_lvl, var, dt, ds in zip(estCost, variance, self.dilation, disp_sample):
             loss_all_level.append(
-                self.loss_per_level(est_cost_per_lvl, gtDisp, var, dt))
+                self.loss_per_level(est_cost_per_lvl, gtDisp, var, dt, ds))
 
         # re-weight loss per level
         weighted_loss_all_level = dict()

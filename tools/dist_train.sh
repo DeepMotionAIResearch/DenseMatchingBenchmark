@@ -3,6 +3,7 @@
 
 NGPUS=$1
 CFG_PATH=$2
+PORT=$3
 
-python -m torch.distributed.launch --nproc_per_node=$NGPUS \
+CUDA_VISIBLE_DEVICES=4,5,6,7 python -m torch.distributed.launch --master_port $PORT --nproc_per_node=$NGPUS \
         train.py $CFG_PATH --launcher pytorch --validate --gpus $NGPUS

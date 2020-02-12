@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -58,14 +59,14 @@ class Cmn(nn.Module):
                                                    "of cost volumes({})".format(len(self.conf_heads), len(costs))
 
         confs = [conf_head(cost) for cost, conf_head in zip(costs, self.conf_heads)]
-        cost_vars = [self.alpha * (1 - F.sigmoid(conf)) + self.beta for conf in confs]
+        cost_vars = [self.alpha * (1 - torch.sigmoid(conf)) + self.beta for conf in confs]
 
         if self.training:
             cm_losses = self.loss_evaluator(confs, target)
 
             return cost_vars, cm_losses
         else:
-            return cost_vars, {}
+            return cost_vars, confs
 
 
 def build_cmn(cfg):

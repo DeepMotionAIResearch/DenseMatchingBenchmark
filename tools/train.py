@@ -4,6 +4,9 @@ import argparse
 import os
 import os.path as osp
 
+import sys
+sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
+
 import torch
 
 from mmcv import Config
@@ -40,6 +43,15 @@ def parse_args():
         help='job launcher'
     )
     parser.add_argument('--local_rank', type=int, default=0)
+
+    #TODO del
+    parser.add_argument('--out_path', default='',
+                        help='needed by job client')
+    parser.add_argument('--in_path', default='',
+                        help='needed by job client')
+    parser.add_argument('--pretrained_path', default='', help='needed by job client')
+    parser.add_argument('--job_name', default='', help='needed by job client')
+    parser.add_argument('--job_id', default='', help='needed by job client')
 
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:

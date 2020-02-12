@@ -5,8 +5,8 @@ from dmb.modeling.stereo.losses.conf_nll_loss import ConfidenceNllLoss
 
 
 def make_conf_nll_loss_evaluator(cfg):
-    max_disp = cfg.model.max_disp
-    weights = cfg.model.cmn.losses.nll_loss.weights
+    max_disp = cfg.model.cmn.losses.nll_loss.get('max_disp', 192)
+    weights = cfg.model.cmn.losses.nll_loss.get('weights', None)
     sparse = cfg.data.sparse
 
     return ConfidenceNllLoss(

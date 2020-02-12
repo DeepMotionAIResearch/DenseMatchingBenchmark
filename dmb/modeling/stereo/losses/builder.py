@@ -4,25 +4,27 @@ from .stereo_focal_loss import StereoFocalLoss
 
 # smooth l1 loss
 def make_sll_loss_evaluator(cfg):
-    max_disp = cfg.model.max_disp
+    max_disp = cfg.model.losses.l1_loss.get('max_disp', None)
     weights = cfg.model.losses.l1_loss.weights
     sparse = cfg.data.sparse
 
     return DispSmoothL1Loss(
-        max_disp,
+        max_disp=max_disp,
         weights=weights, sparse=sparse
     )
 
 
 # stereo focal loss
 def make_focal_loss_evaluator(cfg):
-    max_disp = cfg.model.max_disp
-    weights = cfg.model.losses.focal_loss.weights
-    coefficient = cfg.model.losses.focal_loss.coefficient
+    max_disp = cfg.model.losses.focal_loss.get('max_disp', None)
+    start_disp = cfg.model.losses.focal_loss.get('start_disp', 0)
+    dilation = cfg.model.losses.focal_loss.get('dilation', 1)
+    weights = cfg.model.losses.focal_loss.get('weights', None)
+    coefficient = cfg.model.losses.focal_loss.get('coefficient', 0.0)
     sparse = cfg.data.sparse
 
     return StereoFocalLoss(
-        max_disp, weights=weights,
+        max_disp=max_disp, start_disp=start_disp, dilation=dilation, weights=weights,
         focal_coefficient=coefficient, sparse=sparse
     )
 
@@ -34,7 +36,7 @@ class CombinedLossEvaluators(object):
         self.loss_evaluators = loss_evaluators
         self.loss_weights = loss_weights
 
-    def __call__(self, disps, costs, target, cost_vars=None):
+    def __call__(self, disps, costs, target, **kwargs):
         comb_loss_dict = dict()
 
         for loss_name, loss_evaluator in self.loss_evaluators.items():
@@ -42,7 +44,7 @@ class CombinedLossEvaluators(object):
             if isinstance(loss_evaluator, DispSmoothL1Loss):
                 loss_dict = loss_evaluator(disps, target)
             elif isinstance(loss_evaluator, StereoFocalLoss):
-                loss_dict = loss_evaluator(costs, target, cost_vars)
+                loss_dict = loss_evaluator(costs, target, **kwargs)
             else:
                 raise ValueError("{} not implemented.".format(loss_name))
 

@@ -10,6 +10,8 @@ from dmb.visualization.stereo.vis import tensor_to_color
 from dmb.visualization.stereo.vis import group_color
 
 
+# Attention: in this framework, we always set the first result, e.g., disparity map, as the best.
+
 class ShowDisp(object):
     """
     Show the result related to disparity

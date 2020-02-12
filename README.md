@@ -16,6 +16,8 @@ Our architecture is based on two wellknown detection framework: [mmdetection](ht
   The toolbox directly supports popular and contemporary matching frameworks, *e.g.* AcfNet, GANet, GwcNet, PSMNet, GC-Net etc.
 
 - **visualization**
+    
+  The toolbox provides various visualization, e.g., cost volume / distribution visualization, colorful disparity map and so on.
 
 - **State of the art**
 
@@ -41,12 +43,25 @@ Please see [GETTING_STARTED.md](GETTING_STARTED.md) for the basic usage of Dense
 
 - [ ] inference
 - [ ] visulization tool(for cost volume)
-- [ ] polish archive
 - [ ] unsupervised mono-depth
 - [ ] unsupervised stereo
-- [ ] real-time stereo model
+
 
 ## Experiment Results
+
+All our reimplemented methods will provide checkpoint in corresponding config file `ResultOf{ModelName}`
+
+(*x*): means the result in original paper
+
+
+
+|    Model   |   FLOPS   | Parameters | FPS  | Time(ms) | [SceneFlow (EPE)][3] | [KITTI 2012][2] | [KITTI 2015 (D1-all)][1] |
+|:----------:|:---------:|:----------:|:----:|:--------:|:---------------:|:----------:|:-------------------:|
+|   GCNet    |
+|   PSMNet   | 938.186G  |  5.225M    | 1.67 |  599.2   | 1.112 (*1.09*)  |            | 2.33 （*2.32*）|
+|   AcfNet   |
+|  StereoNet |
+|  DeepPruner|
 
 
 ## Contributing
@@ -80,3 +95,8 @@ This repo is currently maintained by Youmin Zhang([@youmi-zym](http://github.com
  and Yimin Chen ([@Minwell-dht](http://github.com/Minwellcym))
 ## License
 DenseMatchingBenchmark is released under the MIT license. See [LICENSE](LICENSE) for additional details.
+
+
+[1]: http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=stereo
+[2]: http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php?benchmark=stereo
+[3]: https://lmb.informatik.uni-freiburg.de/resources/datasets/SceneFlowDatasets.en.html

@@ -1,30 +1,27 @@
-from dmb.modeling.stereo import registry
-
 from .gc_net import GCNetBackbone
 from .psm_net import PSMNetBackbone
+from .stereo_net import StereoNetBackbone
+from .deep_pruner import DeepPrunerBackbone
 
 
-@registry.BACKBONES.register("GCNet")
-def build_gcnet_backbone(cfg):
-    in_planes = cfg.model.backbone.in_planes
-    batch_norm = cfg.model.batch_norm
-
-    backbone = GCNetBackbone(in_planes, batch_norm)
-    return backbone
-
-
-@registry.BACKBONES.register("PSMNet")
-def build_psmnet_backbone(cfg):
-    in_planes = cfg.model.backbone.in_planes
-    batch_norm = cfg.model.batch_norm
-
-    backbone = PSMNetBackbone(in_planes, batch_norm)
-    return backbone
-
+BACKBONES = {
+    'GCNet': GCNetBackbone,
+    'PSMNet': PSMNetBackbone,
+    'StereoNet': StereoNetBackbone,
+    'DeepPruner': DeepPrunerBackbone,
+}
 
 def build_backbone(cfg):
-    assert cfg.model.backbone.conv_body in registry.BACKBONES, \
-        "cfg.model.backbone.conv_body: {} is not registered in registry".format(
-            cfg.model.backbone.conv_body
-        )
-    return registry.BACKBONES[cfg.model.backbone.conv_body](cfg)
+    backbone_type = cfg.model.backbone.type
+
+    assert backbone_type in BACKBONES, \
+        "model backbone type not found, excepted: {}," \
+                        "but got {}".format(BACKBONES.keys, backbone_type)
+
+    default_args = cfg.model.backbone
+    default_args.pop('type')
+    default_args.update(batch_norm=cfg.model.batch_norm)
+
+    backbone = BACKBONES[backbone_type](**default_args)
+
+    return backbone

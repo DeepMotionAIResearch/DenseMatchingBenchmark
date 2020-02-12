@@ -40,13 +40,16 @@ def do_evaluation(est_disp, gt_disp, lb, ub):
     """
     Do pixel error evaluation. (See KITTI evaluation protocols for details.)
     Args:
-        est_disp:
-        gt_disp:
-        lb:
-        ub:
+        est_disp, (Tensor): estimated disparity map, in [BatchSize, Channel, Height, Width] or
+            [BatchSize, Height, Width] or [Height, Width] layout
+        gt_disp, (Tensor): ground truth disparity map, in [BatchSize, Channel, Height, Width] or
+            [BatchSize, Height, Width] or [Height, Width] layout
+        lb, (scalar): the lower bound of disparity you want to mask out
+        ub, (scalar): the upper bound of disparity you want to mask out
 
     Returns:
-        error_dict (dict):
+        error_dict (dict): the error of 1px, 2px, 3px, 5px, in percent,
+            range [0,100] and average error epe
     """
     error_dict = {}
     if est_disp is None:
@@ -71,11 +74,14 @@ def do_occlusion_evaluation(est_disp, ref_gt_disp, target_gt_disp, lb, ub):
     """
     Do occlusoin evaluation.
     Args:
-        est_disp:
-        ref_gt_disp:
-        target_gt_disp:
-        lb:
-        ub:
+        est_disp: estimated disparity map, in [BatchSize, Channel, Height, Width] or
+            [BatchSize, Height, Width] or [Height, Width] layout
+        ref_gt_disp: reference(left) ground truth disparity map, in [BatchSize, Channel, Height, Width] or
+            [BatchSize, Height, Width] or [Height, Width] layout
+        target_gt_disp: target(right) ground truth disparity map, in [BatchSize, Channel, Height, Width] or
+            [BatchSize, Height, Width] or [Height, Width] layout
+        lb, (scalar): the lower bound of disparity you want to mask out
+        ub, (scalar): the upper bound of disparity you want to mask out
 
     Returns:
 

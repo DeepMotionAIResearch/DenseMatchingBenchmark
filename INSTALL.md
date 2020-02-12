@@ -48,9 +48,9 @@ cd DenseMatchingBenchmark
 
 e. Install DenseMatchingBenchmark(other dependencies will be installed optionally).
 ```bash
-# libs include: dmb, GANet
+# libs include: dmb
 
-# the $1 can be: 'all', 'dmb', 'GANet'
+# the $1 can be: 'all', 'dmb'
 # => install all libs or specific lib, e.g. dmb
 
 # the $2 can be: 'install'
@@ -65,43 +65,11 @@ bash INSTALL.sh $1 $2
 bash INSTALL.sh all
 ```
 
-### Prepare Scene Flow and KITTI dataset.
+### Prepare data
 
-It is recommended to symlink the dataset root to `$DenseMatchingBenchmark/datasets/`.
-
-```
-├── KITTI-2012
-│   └── data_stereo_flow
-│       ├── testing
-│       └── training
-├── KITTI-2015
-│   ├── calib
-│   ├── devkit
-│   ├── testing
-│   │   ├── image_2
-│   │   └── image_3
-│   └── training
-│       ├── disp_noc_0
-│       ├── disp_noc_1
-│       ├── image_2
-│       └── image_3
-└── SceneFlow
-    ├── calib
-    ├── driving
-    │   ├── disparity
-    │   ├── frames_cleanpass
-    │   └── frames_finalpass
-    ├── flyingthings3d
-    │   ├── disparity
-    │   ├── frames_cleanpass
-    │   └── frames_finalpass
-    └── Monkaa
-        ├── disparity
-        ├── frames_cleanpass
-        └── frames_finalpass
+Data prepare please refer to [DATA.md](DATA.md)
 
 
-```
 
 ### Notice
 You can run `python(3) setup.py develop` or `pip install -e .` to install DenseMatchingBenchmark if you want to make modifications to it frequently.
@@ -117,5 +85,7 @@ or run the following command in the terminal of corresponding folder.
 ```shell
 export PYTHONPATH=`pwd`:$PYTHONPATH
 ```
+
+
 
 

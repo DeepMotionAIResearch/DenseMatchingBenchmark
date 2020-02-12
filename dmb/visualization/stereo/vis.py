@@ -225,12 +225,12 @@ def group_color(est_disp, gt_disp=None, left_image=None, right_image=None, save_
 
     if right_image is not None:
         right_image = np.array(right_image, np.float32) / 255.0
-        # concatenate 4 map in order as [left_image, est_disp, gt_disp, err_disp]
+        # concatenate maps in order as [right_image, est_disp, gt_disp, err_disp]
         group_image = np.concatenate((right_image, group_image), 0).clip(0., 1.)
 
     if left_image is not None:
         left_image = np.array(left_image, np.float32) / 255.0
-        # concatenate 4 map in order as [left_image, est_disp, gt_disp, ErrDisp]
+        # concatenate maps in order as [left_image, right_image, est_disp, gt_disp, ErrDisp]
         group_image = np.concatenate((left_image, group_image), 0).clip(0., 1.)
 
     if save_path is not None:

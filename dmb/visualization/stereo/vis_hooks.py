@@ -17,7 +17,18 @@ from mmcv.runner import LogBuffer
 from mmcv.parallel import scatter, collate
 
 from dmb.visualization.stereo.show_result import ShowResultTool
+from dmb.data.datasets.evaluation.stereo.eval import remove_padding
 
+def to_cpu(tensor):
+    error_msg = "Tensor must contain tensors, dicts or lists; found {}"
+    if isinstance(tensor, torch.Tensor):
+        return tensor.detach().cpu()
+    elif isinstance(tensor, container_abcs.Mapping):
+        return {key: to_cpu(tensor[key]) for key in tensor}
+    elif isinstance(tensor, container_abcs.Sequence):
+        return [to_cpu(samples) for samples in tensor]
+
+    raise TypeError((error_msg.format(type(tensor))))
 
 def prepare_visualize(result, epoch, work_dir, image_name):
     result_tool = ShowResultTool()
@@ -83,7 +94,33 @@ class DistVisHook(Hook):
 
             # compute output
             with torch.no_grad():
-                result = runner.model(data_gpu)
+                ori_result, _ = runner.model(data_gpu)
+
+                # remove the padding when data augmentation
+                disps = ori_result['disps']
+                costs = ori_result['costs']
+
+                ori_size = data_gpu['original_size']
+                disps = remove_padding(disps, ori_size)
+                target = data_gpu['leftDisp'] if 'leftDisp' in data_gpu else None
+                if target is not None:
+                    target = remove_padding(target, ori_size)
+
+                result = {
+                    'Disparity': disps,
+                    'GroundTruth': target,
+                }
+
+                if hasattr(self.cfg.model, 'cmn'):
+                    # confidence measurement network
+                    confs = ori_result['confs']
+                    confs = remove_padding(confs, ori_size)
+                    result.update(Confidence=confs)
+
+                if self.cfg.model.eval.is_cost_return:
+                    if self.cfg.model.eval.is_cost_to_cpu:
+                        costs = [cost.cpu() for cost in costs]
+                    result['Cost'] = costs
 
             # convert result to suitable visualization image
             item = self.dataset.data_list[idx]
@@ -137,7 +174,7 @@ class DistStereoVisHook(DistVisHook):
                 runner.log_buffer.output[key] = result[key]
 
         # runner.epoch start at 0
-        log_str = "Epoch [{}] Visualization Finished: \t".format(runner.epoch + 1)
+        log_str = "Epoch [{}] Visualization Finished!".format(runner.epoch + 1)
 
         runner.logger.info(log_str)
         runner.log_buffer.ready = True

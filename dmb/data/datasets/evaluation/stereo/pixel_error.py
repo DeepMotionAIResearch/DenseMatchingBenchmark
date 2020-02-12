@@ -10,8 +10,8 @@ def calc_error(est_disp=None, gt_disp=None, lb=None, ub=None):
             [BatchSize, Height, Width] or [Height, Width] layout
         gt_disp (Tensor): in [BatchSize, Channel, Height, Width] or
             [BatchSize, Height, Width] or [Height, Width] layout
-        lb (scaler): the lower bound of disparity you want to mask out
-        ub (scaler): the upper bound of disparity you want to mask out
+        lb (scalar): the lower bound of disparity you want to mask out
+        ub (scalar): the upper bound of disparity you want to mask out
     Output:
         dict: the error of 1px, 2px, 3px, 5px, in percent,
             range [0,100] and average error epe

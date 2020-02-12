@@ -15,7 +15,7 @@ from mmcv.parallel import scatter, collate
 
 from dmb.visualization.stereo import ShowConf
 
-from .eval import remove_padding, do_evaluation
+from .eval import remove_padding, do_evaluation, do_occlusion_evaluation
 
 
 def to_cpu(tensor):
@@ -70,7 +70,8 @@ class DistEvalHook(Hook):
                 ori_size = data_gpu['original_size']
                 disps = remove_padding(disps, ori_size)
                 target = data_gpu['leftDisp'] if 'leftDisp' in data_gpu else None
-                target = remove_padding(target, ori_size)
+                if target is not None:
+                    target = remove_padding(target, ori_size)
                 error_dict = do_evaluation(
                     disps[0], target, self.cfg.model.eval.lower_bound, self.cfg.model.eval.upper_bound)
 
