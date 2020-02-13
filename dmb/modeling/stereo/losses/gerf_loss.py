@@ -3,25 +3,30 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class ConfidenceNllLoss(object):
+class DispGERFLoss(object):
     """
+    GERF loss, proposed in StereoNet, details can be refer to
+    https://github.com/meteorshowers/StereoNet-ActiveStereoNet/blob/master/utils/utils.py#L20
+
     Args:
+        max_disp (int): the max of Disparity. default is 192
+        start_disp (int): the start searching disparity index, usually be 0
         weights (list of float or None): weight for each scale of estCost.
-        max_disp (int): the max of Disparity. default: 192
         sparse (bool): whether the ground-truth disparity is sparse,
-            for example, KITTI is sparse, but SceneFlow is not. default is False
+            for example, KITTI is sparse, but SceneFlow is not, default is False.
     Inputs:
-        estConf (Tensor or list of Tensor): the estimated confidence map,
+        estDisp (Tensor or list of Tensor): the estimated disparity map,
             in [BatchSize, 1, Height, Width] layout.
         gtDisp (Tensor): the ground truth disparity map,
             in [BatchSize, 1, Height, Width] layout.
     Outputs:
-        weighted_loss_all_level (dict of Tensors): the weighted loss of all levels
+        loss (dict), the loss of each level
     """
 
-    def __init__(self, max_disp, weights=None, sparse=False):
+    def __init__(self, max_disp, start_disp=0, weights=None, sparse=False):
         self.max_disp = max_disp
         self.weights = weights
+        self.start_disp = start_disp
         self.sparse = sparse
         if sparse:
             # sparse disparity ==> max_pooling
@@ -30,8 +35,8 @@ class ConfidenceNllLoss(object):
             # dense disparity ==> avg_pooling
             self.scale_func = F.adaptive_avg_pool2d
 
-    def loss_per_level(self, estConf, gtDisp):
-        N, C, H, W = estConf.shape
+    def loss_per_level(self, estDisp, gtDisp):
+        N, C, H, W = estDisp.shape
         scaled_gtDisp = gtDisp
         scale = 1.0
         if gtDisp.shape[-2] != H or gtDisp.shape[-1] != W:
@@ -41,35 +46,41 @@ class ConfidenceNllLoss(object):
             scaled_gtDisp = self.scale_func(scaled_gtDisp, (H, W))
 
         # mask for valid disparity
-        # gt zero and lt max disparity
-        mask = (scaled_gtDisp > 0) & (scaled_gtDisp < (self.max_disp / scale))
-        mask = mask.detach_().type_as(gtDisp)
+        # (start disparity, max disparity / scale)
+        # Attention: the invalid disparity of KITTI is set as 0, be sure to mask it out
+        mask = (scaled_gtDisp > self.start_disp) & (scaled_gtDisp < (self.max_disp / scale))
+        if mask.sum() < 1.0:
+            print('GERF loss: there is no point\'s disparity is in ({},{})!'.format(self.start_disp,
+                                                                                        self.max_disp / scale))
 
-        # NLL loss
+        # GERF loss
+        # sqrt([(GT - EST)^2 + 4]) / 2 -1
         valid_pixel_number = mask.float().sum()
         if valid_pixel_number < 1.0:
             valid_pixel_number = 1.0
-        loss = (-1.0 * F.logsigmoid(estConf) * mask).sum() / valid_pixel_number
+        loss = torch.sum(torch.sqrt(torch.pow(scaled_gtDisp - estDisp, 2)
+                                    * mask.float() + 4) / 2 - 1) /valid_pixel_number
 
         return loss
 
-    def __call__(self, estConf, gtDisp):
-        if not isinstance(estConf, (list, tuple)):
-            estConf = [estConf]
+    def __call__(self, estDisp, gtDisp):
+        if not isinstance(estDisp, (list, tuple)):
+            estDisp = [estDisp]
 
         if self.weights is None:
-            self.weights = [1.0] * len(estConf)
+            self.weights = [1.0] * len(estDisp)
 
         # compute loss for per level
-        loss_all_level = [
-            self.loss_per_level(est_conf_per_lvl, gtDisp)
-            for est_conf_per_lvl in estConf
-        ]
+        loss_all_level = []
+        for est_disp_per_lvl in estDisp:
+            loss_all_level.append(
+                self.loss_per_level(est_disp_per_lvl, gtDisp)
+            )
 
         # re-weight loss per level
         weighted_loss_all_level = dict()
         for i, loss_per_level in enumerate(loss_all_level):
-            name = "conf_loss_lvl{}".format(i)
+            name = "gerf_loss_lvl{}".format(i)
             weighted_loss_all_level[name] = self.weights[i] * loss_per_level
 
         return weighted_loss_all_level
@@ -77,6 +88,7 @@ class ConfidenceNllLoss(object):
     def __repr__(self):
         repr_str = '{}\n'.format(self.__class__.__name__)
         repr_str += ' ' * 4 + 'Max Disparity: {}\n'.format(self.max_disp)
+        repr_str += ' ' * 4 + 'Start disparity: {}\n'.format(self.start_disp)
         repr_str += ' ' * 4 + 'Loss weight: {}\n'.format(self.weights)
         repr_str += ' ' * 4 + 'Disparity is sparse: {}\n'.format(self.sparse)
 
@@ -84,4 +96,4 @@ class ConfidenceNllLoss(object):
 
     @property
     def name(self):
-        return 'ConfidenceNLLLoss'
+        return 'GERFLoss'

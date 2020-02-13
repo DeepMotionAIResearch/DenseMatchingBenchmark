@@ -12,11 +12,14 @@ class DeepPrunerBackbone(nn.Module):
         in_planes (int): the channels of input
         batch_norm (bool): whether use batch normalization layer, default True
     Inputs:
-        l_img (Tensor): left image
-        r_img (Tensor): right image
+        l_img (Tensor): left image, in [BatchSize, 3, Height, Width]
+        r_img (Tensor): right image, in [BatchSize, 3, Height, Width]
     Outputs:
-        l_fms (Tensor): left image feature maps
-        r_fms (Tensor): right image feature maps
+        l_fms (list of Tensor): left image feature maps in layout
+                                [BatchSize, 32, Height//4, Width//4] and [BatchSize, 32, Height//2, Width//2]
+        r_fms (list of Tensor): right image feature maps in layout
+                                [BatchSize, 32, Height//4, Width//4] and [BatchSize, 32, Height//2, Width//2]
+
     """
 
     def __init__(self, in_planes=3, batch_norm=True):

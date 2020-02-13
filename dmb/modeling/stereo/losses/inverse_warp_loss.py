@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from dmb.modeling.stereo.layers.inverse_warp import inverse_warp
-from dmb.modeling.stereo.loss.utils import SSIM
 
 
 class InverseWarpLoss(object):
@@ -53,7 +52,7 @@ class InverseWarpLoss(object):
         return torch.sqrt((est - gt) ** 2 + self.eps).mean()
 
     def loss_per_level(self, estDisp, leftImage, rightImage, mask=None):
-        from dmb.modeling.stereo.loss.utils import SSIM
+        from dmb.modeling.stereo.losses.utils import SSIM
         N, C, H, W = estDisp.shape
         leftImage = F.interpolate(leftImage, (H, W), mode='area')
         rightImage = F.interpolate(rightImage, (H, W), mode='area')

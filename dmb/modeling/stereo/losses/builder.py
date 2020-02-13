@@ -1,4 +1,5 @@
 from .smooth_l1_loss import DispSmoothL1Loss
+from .gerf_loss import DispGERFLoss
 from .stereo_focal_loss import StereoFocalLoss
 
 
@@ -9,6 +10,18 @@ def make_sll_loss_evaluator(cfg):
     sparse = cfg.data.sparse
 
     return DispSmoothL1Loss(
+        max_disp=max_disp,
+        weights=weights, sparse=sparse
+    )
+
+# GERF loss, proposed in StereoNet,
+# https://github.com/meteorshowers/StereoNet-ActiveStereoNet/blob/master/utils/utils.py#L20
+def make_gerf_loss_evaluator(cfg):
+    max_disp = cfg.model.losses.gerf_loss.get('max_disp', None)
+    weights = cfg.model.losses.gerf_loss.weights
+    sparse = cfg.data.sparse
+
+    return DispGERFLoss(
         max_disp=max_disp,
         weights=weights, sparse=sparse
     )
@@ -43,6 +56,8 @@ class CombinedLossEvaluators(object):
             weight = self.loss_weights[loss_name]
             if isinstance(loss_evaluator, DispSmoothL1Loss):
                 loss_dict = loss_evaluator(disps, target)
+            elif isinstance(loss_evaluator, DispGERFLoss):
+                loss_dict = loss_evaluator(disps, target)
             elif isinstance(loss_evaluator, StereoFocalLoss):
                 loss_dict = loss_evaluator(costs, target, **kwargs)
             else:
@@ -63,6 +78,11 @@ def make_gsm_loss_evaluator(cfg):
         l1_loss_evaluator = make_sll_loss_evaluator(cfg)
         loss_evaluators["l1_loss"] = l1_loss_evaluator
         loss_weights["l1_loss"] = cfg.model.losses.l1_loss.weight
+
+    if 'gerf_loss' in cfg.model.losses:
+        gerf_loss_evaluator = make_gerf_loss_evaluator(cfg)
+        loss_evaluators['gerf_loss'] = gerf_loss_evaluator
+        loss_weights['gerf_loss'] = cfg.model.losses.gerf_loss.weight
 
     if "focal_loss" in cfg.model.losses:
         focal_loss_evaluator = make_focal_loss_evaluator(cfg)

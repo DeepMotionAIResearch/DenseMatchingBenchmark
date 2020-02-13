@@ -21,7 +21,7 @@ class StereoNetRefinement(nn.Module):
         rightImage (Tensor): right image, in [BatchSize, 3, Height, Width] layout
 
     Outputs:
-        refine_disp (list of Tensor): refined disparity map, in [BatchSize, 1, Height, Width] layout
+        refine_disps (list of Tensor): refined disparity map, in [BatchSize, 1, Height, Width] layout
 
     """
 
@@ -51,14 +51,14 @@ class StereoNetRefinement(nn.Module):
         init_disp = init_disp * scale
 
         # cascade and refine the previous disparity map
-        refine_disp = [init_disp]
+        refine_disps = [init_disp]
         for block in self.refine_blocks:
-            refine_disp.append(block(refine_disp[-1], leftImage))
+            refine_disps.append(block(refine_disps[-1], leftImage))
 
         # In this framework, we always keep the better disparity map be ahead the worse.
-        refine_disp.reverse()
+        refine_disps.reverse()
 
-        return refine_disp
+        return refine_disps
 
 
 

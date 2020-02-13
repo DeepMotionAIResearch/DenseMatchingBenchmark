@@ -58,8 +58,13 @@ class Cmn(nn.Module):
         assert len(self.conf_heads) == len(costs), "NUM of confidence heads({}) must be equal to NUM" \
                                                    "of cost volumes({})".format(len(self.conf_heads), len(costs))
 
-        confs = [conf_head(cost) for cost, conf_head in zip(costs, self.conf_heads)]
-        cost_vars = [self.alpha * (1 - torch.sigmoid(conf)) + self.beta for conf in confs]
+        # for convenience to use log sigmoid when calculate loss,
+        # we don't directly confidence cost to confidence by sigmoid
+        conf_costs = [conf_head(cost) for cost, conf_head in zip(costs, self.conf_heads)]
+        # convert to confidence
+        confs = [torch.sigmoid(conf_cost) for conf_cost in conf_costs]
+        # calculate variance modulated by confidence
+        cost_vars = [self.alpha * (1 - conf) + self.beta for conf in confs]
 
         if self.training:
             cm_losses = self.loss_evaluator(confs, target)

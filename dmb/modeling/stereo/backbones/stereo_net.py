@@ -41,11 +41,11 @@ class StereoNetBackbone(nn.Module):
             the input RGB image will be downsample to 1/2^num resolution, default 3, i.e., 1/8 resolution
         residual_num (int): the number of residual blocks, used for robust feature extraction
     Inputs:
-        l_img (Tensor): left image
-        r_img (Tensor): right image
+        l_img (Tensor): left image, in [BatchSize, 3, Height, Width] layout
+        r_img (Tensor): right image, in [BatchSize, 3, Height, Width] layout
     Outputs:
-        l_fms (Tensor): left image feature maps
-        r_fms (Tensor): right image feature maps
+        l_fms (Tensor): left image feature maps, in [BatchSize, 32, Height//8, Width//8] layout
+        r_fms (Tensor): right image feature maps, in [BatchSize, 32, Height//8, Width//8] layout
     """
 
     def __init__(self, in_planes=3, batch_norm=True, downsample_num=3, residual_num=6):

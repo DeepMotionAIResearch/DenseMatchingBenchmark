@@ -33,10 +33,10 @@
 RMSProp, lr(10 epochs) schedule: 1-10 with lr\*1
 
 
-|   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time  |
-|:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:-----:|
-|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
-|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
+|   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
+|:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
+|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         |
+|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8372 | 22h13m |
 
 
 #### 20 epoch
@@ -44,8 +44,8 @@ RMSProp, lr(10 epochs) schedule: 1-10 with lr\*1
 RMSProp, lr(20 epochs) schedule: 1-20 with lr\*1
 
 
-|   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time  |
-|:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:-----:|
+|   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
+|:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
 |    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
 |    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
 
@@ -54,7 +54,7 @@ RMSProp, lr(20 epochs) schedule: 1-20 with lr\*1
 ### KITTI-2015
 
 
-|   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | D1(all) | time  |
-|:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:-------:|:-----:|
+|   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | D1(all) |  time  | BaiDuYun | GoogleDrive |
+|:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:-------:|:------:|:--------:|:-----------:|
 |    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
 |    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 

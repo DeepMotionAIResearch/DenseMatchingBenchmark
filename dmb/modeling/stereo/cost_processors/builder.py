@@ -4,6 +4,7 @@ from .utils.cat_fms import CAT_FUNCS
 from .utils.dif_fms import DIF_FUNCS
 from .aggregators import build_cost_aggregator
 
+from .deeppruner import DeepPrunerProcessor
 
 
 class CostProcessor(nn.Module):
@@ -17,7 +18,7 @@ class CostProcessor(nn.Module):
 # Concatenate left and right feature to form cost volume
 class CatCostProcessor(CostProcessor):
 
-    def __init__(self, cfg, aggregator):
+    def __init__(self, cfg):
         super(CatCostProcessor, self).__init__()
         cat_func = cfg.model.cost_processor.cost_computation.get('type', 'default')
         self.cat_func = CAT_FUNCS[cat_func]
@@ -25,7 +26,7 @@ class CatCostProcessor(CostProcessor):
         self.default_args = cfg.model.cost_processor.cost_computation
         self.default_args.pop('type')
 
-        self.aggregator = aggregator
+        self.aggregator = build_cost_aggregator(cfg)
 
     def forward(self, ref_fms, tgt_fms, disp_sample=None):
         # 1. build raw cost by concat
@@ -40,7 +41,7 @@ class CatCostProcessor(CostProcessor):
 # Use the difference between left and right feature to form cost volume
 class DifCostProcessor(CostProcessor):
 
-    def __init__(self, cfg, aggregator):
+    def __init__(self, cfg):
         super(DifCostProcessor, self).__init__()
         dif_func = cfg.model.cost_processor.cost_computation.get('type', 'default')
         self.dif_func = DIF_FUNCS[dif_func]
@@ -48,7 +49,7 @@ class DifCostProcessor(CostProcessor):
         self.default_args = cfg.model.cost_processor.cost_computation
         self.default_args.pop('type')
 
-        self.aggregator = aggregator
+        self.aggregator = build_cost_aggregator(cfg)
 
     def forward(self, ref_fms, tgt_fms, disp_sample=None):
         # 1. build raw cost by concat
@@ -63,6 +64,7 @@ class DifCostProcessor(CostProcessor):
 PROCESSORS = {
     'DIF': DifCostProcessor,
     'CAT': CatCostProcessor,
+    'DEEPPRUNER': DeepPrunerProcessor,
 }
 
 def build_cost_processor(cfg):
@@ -70,11 +72,8 @@ def build_cost_processor(cfg):
     assert proc_type in PROCESSORS, "cost_processor type not found, excepted: {}," \
                                     "but got {}".format(PROCESSORS.keys(), proc_type)
 
-    aggregator = build_cost_aggregator(cfg)
-
     args = dict(
         cfg=cfg,
-        aggregator=aggregator,
     )
     processor = PROCESSORS[proc_type](**args)
 

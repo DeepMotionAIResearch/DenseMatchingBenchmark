@@ -1,7 +1,9 @@
 from .stereonet import StereoNetRefinement
+from .deeppruner import DeepPrunerRefinement
 
 REFINEMENTS = {
     "STEREONET": StereoNetRefinement,
+    "DEEPPRUNER": DeepPrunerRefinement
 }
 
 

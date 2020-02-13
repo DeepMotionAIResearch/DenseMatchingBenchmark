@@ -78,7 +78,8 @@ class UniformSampler(nn.Module):
         From experiments, we found Uniform sampling to work better.
 
     Args:
-        disparity_sample_number, (int): Number of disparity samples to be generated, default 10.
+        disparity_sample_number, (int): Number of disparity samples to be generated,
+                                        including the min and max disparity, default 9.
 
     Inputs:
         min_disparity, (tensor): Min Disparity of the disparity search range,
@@ -91,7 +92,7 @@ class UniformSampler(nn.Module):
                            in [BatchSize, disparity_sample_number, Height, Width] layout
 
     """
-    def __init__(self, disparity_sample_number=10):
+    def __init__(self, disparity_sample_number=9):
         super(UniformSampler, self).__init__()
         self.disparity_sample_number = disparity_sample_number
 
@@ -100,13 +101,16 @@ class UniformSampler(nn.Module):
         device = min_disparity.device
 
         # to get 'disparity_sample_number' samples, and except the min, max disparity,
-        # it means divide [min, max] into 'disparity_sample_number + 1' segments
-        sample_index = torch.arange(1.0, self.disparity_sample_number + 1, 1, device=device)
-        # [disparity_sample_number, 1, 1]
-        sample_index = sample_index.view(self.disparity_sample_number, 1, 1) / (self.disparity_sample_number + 1)
+        # it means divide [min, max] into 'disparity_sample_number -2 + 1' segments
+        sample_index = torch.arange(1.0, self.disparity_sample_number - 2 + 1, 1, device=device)
+        # [disparity_sample_number - 2, 1, 1]
+        sample_index = sample_index.view(self.disparity_sample_number - 2, 1, 1) / (self.disparity_sample_number - 2 + 1)
+
+        # [B, disparity_sample_number - 2, H, W]
+        disparity_samples = min_disparity + (max_disparity - min_disparity) * sample_index
 
         # [B, disparity_sample_number, H, W]
-        disparity_samples = min_disparity + (max_disparity - min_disparity) * sample_index
+        disparity_samples = torch.cat((min_disparity, disparity_samples, max_disparity), dim=1)
 
         return disparity_samples
 
@@ -142,7 +146,7 @@ class DeepPrunerSampler(nn.Module):
 
     Outputs:
         disparity_samples, (tensor): The generated disparity samples for each pixel,
-                           in [BatchSize, disparity_sample_number+2, Height, Width] layout
+                           in [BatchSize, disparity_sample_number, Height, Width] layout
 
     """
     def __init__(self, max_disp,
@@ -150,8 +154,8 @@ class DeepPrunerSampler(nn.Module):
                  propagation_filter_size=3,
                  iterations=3,
                  temperature=7,
-                 patch_match_disparity_sample_number=12,
-                 uniform_disparity_sample_number=7, ):
+                 patch_match_disparity_sample_number=14,
+                 uniform_disparity_sample_number=9, ):
         super(DeepPrunerSampler, self).__init__()
         self.max_disp = max_disp
         self.batch_norm = batch_norm
@@ -177,17 +181,11 @@ class DeepPrunerSampler(nn.Module):
             # [B, disparity_sample_number, H, W]
             disparity_samples = self.patch_match(left, right, min_disparity, max_disparity)
 
-            # [B, disparity_sample_number+2, H, W]
-            disparity_samples = torch.cat((min_disparity, disparity_samples, max_disparity), dim=1)
-
         else: # 'post'
             # [B, 1, H, W], [B, 1, H, W]
             min_disparity, max_disparity = self.disparity_sample_range(stage, self.uniform_disparity_sample_number,
                                                                        left, min_disparity, max_disparity)
             # [B, disparity_sample_number, H, W]
             disparity_samples = self.uniform_sampler(min_disparity, max_disparity)
-
-            # [B, disparity_sample_number+2, H, W]
-            disparity_samples = torch.cat((min_disparity, disparity_samples, max_disparity), dim=1)
 
         return disparity_samples

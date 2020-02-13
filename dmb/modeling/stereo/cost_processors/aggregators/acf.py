@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from dmb.modeling.stereo.layers.basic_layers import conv3d_bn, conv3d_bn_relu
-from dmb.modeling.stereo.layers.hourglass import Hourglass
+from dmb.modeling.stereo.cost_processors.utils.hourglass import Hourglass
 
 
 class AcfAggregator(nn.Module):
@@ -11,8 +10,12 @@ class AcfAggregator(nn.Module):
     Args:
         max_disp (int): max disparity
         in_planes (int): the channels of raw cost volume
-        batch_norm (bool): whether use batch normalization layer,
-            default True
+        batch_norm (bool): whether use batch normalization layer, default True
+
+    Inputs:
+        raw_cost (Tensor): raw cost volume,
+                in [BatchSize, Channels, MaxDisparity//4, Height//4, Width//4] layout
+
     Outputs:
         cost_volume (tuple of Tensor): cost volume
             in [BatchSize, MaxDisparity, Height, Width] layout

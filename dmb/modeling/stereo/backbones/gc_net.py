@@ -12,11 +12,11 @@ class GCNetBackbone(nn.Module):
         in_planes (int): the channels of input
         batch_norm (bool): whether use batch normalization layer, default True
     Inputs:
-        l_img (Tensor): left image
-        r_img (Tensor): right image
+        l_img (Tensor): left image, in [BatchSize, 3, Height, Width]
+        r_img (Tensor): right image, in [BatchSize, 3, Height, Width]
     Outputs:
-        l_fms (Tensor): left image feature maps
-        right (Tensor): right image feature maps
+        l_fms (Tensor): left image feature maps, in [BatchSize, 32, Height//2, Width//2]
+        right (Tensor): right image feature maps, in [BatchSize, 32, Height//2, Width//2]
     """
 
     def __init__(self, in_planes, batch_norm=True):

@@ -12,14 +12,16 @@ class StereoNetAggregator(nn.Module):
         max_disp (int): max disparity
         in_planes (int): the channels of raw cost volume
         batch_norm (bool): whether use batch normalization layer, default True
+
     Inputs:
         raw_cost (Tensor): difference-based cost volume without further processing,
-            in [BatchSize, in_planes, max_disp//8, Height, Width] layout (default)
-            or in [BatchSize, in_planes, max_disp//16, Height, Width] layout
+            in [BatchSize, in_planes, max_disp//8, Height//8, Width//8] layout (default)
+            or in [BatchSize, in_planes, max_disp//16, Height//16, Width//16] layout
+
     Outputs:
         cost_volume (tuple of Tensor): cost volume
-            in [BatchSize, max_disp//8, Height, Width] layout (default)
-            or in [BatchSize, in_planes, max_disp//16, Height, Width] layout
+            in [BatchSize, max_disp//8, Height//8, Width//8] layout (default)
+            or in [BatchSize, in_planes, max_disp//16, Height//16, Width//16] layout
     """
 
     def __init__(self, max_disp, in_planes=32, batch_norm=True, num=4):
@@ -46,7 +48,7 @@ class StereoNetAggregator(nn.Module):
         # cost: (BatchSize, 1, MaxDisparity/8, Height/8, Width/8)
         cost = self.lastconv(raw_cost)
 
-        # (BatchSize, max_disp, Height, Width)
+        # (BatchSize, MaxDisparity/8, Height/8, Width/8)
         cost = torch.squeeze(cost, 1)
 
 

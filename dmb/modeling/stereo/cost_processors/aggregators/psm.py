@@ -1,10 +1,9 @@
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from dmb.modeling.stereo.layers.basic_layers import conv3d_bn, conv3d_bn_relu
-from dmb.modeling.stereo.layers.hourglass import Hourglass
+from dmb.modeling.stereo.cost_processors.utils.hourglass import Hourglass
 
 
 class PSMAggregator(nn.Module):
@@ -13,12 +12,13 @@ class PSMAggregator(nn.Module):
         max_disp (int): max disparity
         in_planes (int): the channels of raw cost volume
         batch_norm (bool): whether use batch normalization layer, default True
+
     Inputs:
         raw_cost (Tensor): concatenation-based cost volume without further processing,
-            in [BatchSize, in_planes, max_disp//4, Height, Width] layout
+            in [BatchSize, in_planes, MaxDisparity//4, Height//4, Width//4] layout
     Outputs:
         cost_volume (tuple of Tensor): cost volume
-            in [BatchSize, max_disp, Height, Width] layout
+            in [BatchSize, MaxDisparity, Height, Width] layout
     """
 
     def __init__(self, max_disp, in_planes=64, batch_norm=True):

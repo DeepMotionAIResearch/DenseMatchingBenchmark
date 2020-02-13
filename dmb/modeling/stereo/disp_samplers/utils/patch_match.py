@@ -12,13 +12,12 @@ import torch.nn.functional as F
 
 from dmb.modeling.stereo.layers.inverse_warp_3d import inverse_warp_3d
 
-#TODO: vertify
 
 class DisparityInitialization(nn.Module):
     """
     PatchMatch Initialization Block
     Description:
-        Rather than allowing each sample/ particle to reside in the full disparity space,
+        Rather than allowing each sample / particle to reside in the full disparity space,
         we divide the search space into 'disparity_sample_number' intervals, and force the
         i-th particle to be in a i-th interval. This guarantees the diversity of the
         particles and helps improve accuracy for later computations.
@@ -27,7 +26,10 @@ class DisparityInitialization(nn.Module):
         this function divides the complete disparity search space into multiple intervals.
 
     Args:
-        disparity_sample_number, (int): Number of disparity samples to be generated, default 10.
+        disparity_sample_number, (int): Number of disparity samples to be generated
+                                        between min and max disparity,
+                                        but exclude the  min and max disparity,
+                                        default 10.
 
     Inputs:
         min_disparity, (tensor): Min Disparity of the disparity search range,
@@ -45,7 +47,7 @@ class DisparityInitialization(nn.Module):
         disparity_sample_interval, (int): 1.0 / disparity_sample_number
 
     """
-    def __init__(self, disparity_sample_number=10):
+    def __init__(self, disparity_sample_number=12):
         super(DisparityInitialization, self).__init__()
         self.disparity_sample_number = disparity_sample_number
 
@@ -57,8 +59,10 @@ class DisparityInitialization(nn.Module):
         B = min_disparity.shape[0]
         H, W = min_disparity.shape[-2:]
 
+        # to get 'disparity_sample_number' samples, and except the min, max disparity,
+        # it means divide [min, max] into 'disparity_sample_number + 1' segments
         # disparity sample interval between near disparity samples
-        disparity_sample_interval = 1.0 / self.disparity_sample_number
+        disparity_sample_interval = 1.0 / (self.disparity_sample_number + 1)
 
         # Generate noise ranged in [0, 1], which submits to standard normal distribution
         # As each pixel should have its own disparity particles, rather than uniform for each pixel.
@@ -66,8 +70,10 @@ class DisparityInitialization(nn.Module):
         disparity_sample_noise = torch.randn(size=(B, self.disparity_sample_number, H, W), device=device)
 
         # the index for each sampled disparity candidates,
+        # e.g., n = disparity_sample_number + 1, index = [1/n, 2/n, ..., (n-1)/n]
         # in [B, disparity_sample_number, H, W] layout
-        index = torch.linspace(0, 1, self.disparity_sample_number).view(1, self.disparity_sample_number, 1, 1)
+        index = torch.arange(0, (self.disparity_sample_number + 1), 1) / (self.disparity_sample_number + 1)
+        index = index.view(1, self.disparity_sample_number, 1, 1)
         disparity_sample_index = index.expand(B, self.disparity_sample_number, H, W).type_as(min_disparity)
 
         # the sampled disparity candidates, i.e., the minimum disparity in each interval
@@ -261,7 +267,8 @@ class PatchMatch(nn.Module):
 
     Args:
         propagation_filter_size, (int): the filter size in propagation, default 3.
-        disparity_sample_number, (int): Number of disparity samples to be generated, default 10.
+        disparity_sample_number, (int): Number of disparity samples to be generated,
+                                        including the min and max disparity, default 14.
         iterations, (int): Number of PatchMatch iterations
         temperature, (int, float): To raise the max and lower the other values when using soft-max
                      details can refer to: https://bouthilx.wordpress.com/2013/04/21/a-soft-argmax/
@@ -275,11 +282,12 @@ class PatchMatch(nn.Module):
 
     Outputs:
         disparity_samples, (tensor): The generated disparity samples for each pixel,
+                                     including the min and max disparity,
                            in [BatchSize, disparity_sample_number, Height, Width] layout
     """
     def __init__(self,
                  propagation_filter_size=3,
-                 disparity_sample_number=10,
+                 disparity_sample_number=14,
                  iterations=3,
                  temperature=7):
         super(PatchMatch, self).__init__()
@@ -288,7 +296,8 @@ class PatchMatch(nn.Module):
         self.iterations = iterations
         self.temperature = temperature
 
-        self.disparity_initialization = DisparityInitialization(disparity_sample_number)
+        # except the min and max disparity, there are 'disparity_sample_number-2' need to be generated
+        self.disparity_initialization = DisparityInitialization(disparity_sample_number-2)
         self.propagation = Propagation(propagation_filter_size=propagation_filter_size)
         self.evaluate = Evaluate(propagation_filter_size=propagation_filter_size,
                                  temperature=temperature)
@@ -307,7 +316,7 @@ class PatchMatch(nn.Module):
         #                         in [B, disparity_sample_number, H, W] layout
         # disparity_sample_interval: 1.0 / disparity_sample_number, in [1] layout
         disparity_sample_noise, interval_min_disparity, disparity_sample_interval = self.disparity_initialization(
-            min_disparity, max_disparity, self.disparity_sample_number
+            min_disparity, max_disparity
         )
 
         # [B, disparity_sample_number, H, W] -> [B, disparity_sample_number, propagation_filter_size, H, W]
@@ -324,7 +333,7 @@ class PatchMatch(nn.Module):
             disparity_sample_noise = self.propagation(disparity_sample_noise, device,
                                                       propagation_type="horizontal")
 
-            # noise in [0, 1] * (max -min) * 1 / sample number + minimum in each interval
+            # noise in [0, 1] * [(max -min) / sample number] + minimum in each interval
             # [B, disparity_sample_number * propagation_filter_size, H, W]
             disparity_samples = (max_disparity - min_disparity) * disparity_sample_interval * \
                                 disparity_sample_noise + interval_min_disparity
@@ -345,5 +354,8 @@ class PatchMatch(nn.Module):
             # [B, disparity_sample_number, H, W], [B, disparity_sample_number, H, W]
             disparity_samples, disparity_sample_noise = self.evaluate(left, right, disparity_samples,
                                                                       disparity_sample_noise)
+        # not only the disparity samples generated in (min, max),
+        # the min and max are also the disparity samples
+        disparity_samples = torch.cat((min_disparity, disparity_samples, max_disparity), dim=1)
 
         return disparity_samples

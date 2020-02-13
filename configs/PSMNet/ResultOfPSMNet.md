@@ -31,7 +31,7 @@ RMSProp, lr(10 epochs) schedule: 1-10 with lr\*1
 
 |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)|  time  | BaiDuYun | GoogleDrive |
 |:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
-| 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 1.112  | 22h44m | [link][1], pw: 0kxt|
+| 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 1.112  | 22h44m | [link][1], pw: 0kxt| [link][3] |
 
 
 
@@ -39,9 +39,11 @@ RMSProp, lr(10 epochs) schedule: 1-10 with lr\*1
 
 |  lr   |batch size |weight init| synced bn | float16   |loss scale | D1(all)  |  time  | BaiDuYun | GoogleDrive |
 |:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:--------:|:------:|:--------:|:-----------:|
-| 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 2.33     | 15h15m | [link][2], pw: odt8|
+| 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 2.33     | 15h15m | [link][2], pw: odt8| [link][4] |
 
 
 
 [1]: https://pan.baidu.com/s/1e693uEuNK6uAg3OZstDJVQ
 [2]: https://pan.baidu.com/s/1XnrtztXY9og3-JtBrLEGyA
+[3]: https://drive.google.com/open?id=1aPJiGkt9P2Lt0UCcM817YjONV2DRDEBH
+[4]: https://drive.google.com/drive/folders/1T__OTsViq5tkstm7jKV6p9wSs96EYUGw?usp=sharing

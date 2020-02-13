@@ -91,9 +91,12 @@ class StereoFocalLoss(object):
             ).getProb()
 
         # stereo focal loss
+        valid_pixel_number = mask.float().sum()
+        if valid_pixel_number < 1.0:
+            valid_pixel_number = 1.0
         estProb = F.log_softmax(estCost, dim=1)
         weight = (1.0 - scaled_gtProb).pow(-self.focal_coefficient).type_as(scaled_gtProb)
-        loss = -((scaled_gtProb * estProb) * weight * mask.float()).sum(dim=1, keepdim=True).mean()
+        loss = -((scaled_gtProb * estProb) * weight * mask.float()).sum() / valid_pixel_number
 
         return loss
 

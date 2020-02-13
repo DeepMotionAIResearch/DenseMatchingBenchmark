@@ -36,6 +36,7 @@ class GeneralizedStereoModel(nn.Module):
         if 'disp_refinement' in cfg.model:
             self.disp_refinement = build_disp_refinement(cfg)
 
+        # make general stereo matching loss evaluator
         self.loss_evaluator = make_gsm_loss_evaluator(cfg)
 
     def forward(self, batch):

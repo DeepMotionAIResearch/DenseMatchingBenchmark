@@ -68,7 +68,7 @@ class LocalSoftArgmin(nn.Module):
         # for example, if dilation=2, disp_sample_radius =2, we will get (-4, -2, 0, 2, 4)
         interval = torch.linspace(-self.radius * self.radius_dilation,
                                   self.radius * self.radius_dilation,
-                                  2 * self.radius + 1).type_as(max_index).to(cost_volume.device)
+                                  2 * self.radius + 1).long().to(cost_volume.device)
         # (BatchSize, 2 * radius + 1, Height, Width)
         interval = interval.repeat(B, H, W, 1).permute(0, 3, 1, 2).contiguous()
 

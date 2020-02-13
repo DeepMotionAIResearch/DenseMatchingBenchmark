@@ -2,12 +2,14 @@ from .gc import GCAggregator
 from .psm import PSMAggregator
 from .acf import AcfAggregator
 from .stereonet import StereoNetAggregator
+from .deeppruner import DeepPrunerAggregator
 
 AGGREGATORS = {
     "GC": GCAggregator,
     "PSM": PSMAggregator,
     "ACF": AcfAggregator,
     'STEREONET': StereoNetAggregator,
+    'DEEPPRUNER': DeepPrunerAggregator,
 }
 
 

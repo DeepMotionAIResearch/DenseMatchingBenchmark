@@ -67,7 +67,7 @@ model = dict(
         num=1,
     ),
     losses=dict(
-        l1_loss=dict(
+        gerf_loss=dict(
             # the maximum disparity of disparity search range
             max_disp=max_disp,
             # weights for different scale loss
@@ -190,7 +190,7 @@ dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
 load_from = None
-resume_from = osp.join(root, 'exps/StereoNet/scene_flow_8x_2stage/epoch_7.pth')
+resume_from = None
 workflow = [('train', 1)]
 work_dir = osp.join(root, 'exps/StereoNet/scene_flow_8x_2stage')
 
