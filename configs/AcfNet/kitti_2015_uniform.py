@@ -37,7 +37,7 @@ model = dict(
         # the maximum disparity of disparity search range
         max_disp=max_disp,
         # the radius of window when local sampling
-        radius=2,
+        radius=3,
         # the start disparity of disparity search range
         start_disp=0,
         # the step between near disparity sample
@@ -183,12 +183,12 @@ gpus = 4
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
-load_from = osp.join(root, 'exps/AcfNet/scene_flow_uniform_radius2/epoch_20.pth')
+load_from = osp.join(root, 'exps/AcfNet/scene_flow_uniform/epoch_20.pth')
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AcfNet/kitti_2015_uniform_radius2')
+work_dir = osp.join(root, 'exps/AcfNet/kitti_2015_uniform')
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_600.pth')
-out_dir = osp.join(work_dir, 'epoch_600')
+checkpoint = osp.join(work_dir, 'epoch_575.pth')
+out_dir = osp.join(work_dir, 'epoch_575')

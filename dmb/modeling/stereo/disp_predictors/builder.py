@@ -15,7 +15,7 @@ def build_disp_predictor(cfg):
     assert pred_type in PREDICTORS, 'disparity predictor type not found, expected: {},' \
                                     'but got {}'.format(PREDICTORS.keys(), pred_type)
 
-    default_args = cfg.model.disp_predictor
+    default_args = cfg.model.disp_predictor.copy()
     default_args.pop('type')
 
     disp_predictor = PREDICTORS[pred_type](**default_args)

@@ -42,8 +42,8 @@ class DisparitySampleRangeHead(nn.Module):
         B, _, H, W = left.shape
 
         if stage == 'pre':
-            min_disparity = torch.zeros((B, disparity_sample_number, H, W), device=device)
-            max_disparity = torch.zeros((B, disparity_sample_number, H, W), device=device) + self.max_disp
+            min_disparity = torch.zeros((B, 1, H, W), device=device)
+            max_disparity = torch.zeros((B, 1, H, W), device=device) + self.max_disp
 
         else: # 'post'
             global_min_disparity = torch.min(min_disparity, max_disparity)
@@ -102,7 +102,7 @@ class UniformSampler(nn.Module):
 
         # to get 'disparity_sample_number' samples, and except the min, max disparity,
         # it means divide [min, max] into 'disparity_sample_number -2 + 1' segments
-        sample_index = torch.arange(1.0, self.disparity_sample_number - 2 + 1, 1, device=device)
+        sample_index = torch.arange(1.0, self.disparity_sample_number - 2 + 1, 1, device=device).float()
         # [disparity_sample_number - 2, 1, 1]
         sample_index = sample_index.view(self.disparity_sample_number - 2, 1, 1) / (self.disparity_sample_number - 2 + 1)
 

@@ -10,7 +10,7 @@ def build_disp_sampler(cfg):
     assert sampler_type in SAMPLER, "disp_sampler type not found, expected: {}," \
                                     "but got {}".format(SAMPLER.keys(), sampler_type)
 
-    default_args = cfg.model.disp_sampler
+    default_args = cfg.model.disp_sampler.copy()
     default_args.pop('type')
     default_args.update(batch_norm=cfg.model.batch_norm)
 

@@ -42,9 +42,9 @@ class testModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.device = torch.device('cuda:1')
+        cls.device = torch.device('cuda:3')
         config_path = '/home/zhixiang/youmin/projects/depth/public/' \
-                      'DenseMatchingBenchmark/configs/StereoNet/scene_flow_8x_2stage.py'
+                      'DenseMatchingBenchmark/configs/DeepPruner/scene_flow_4x.py' # AcfNet/scene_flow_adaptive.py' #
         cls.cfg = Config.fromfile(config_path)
         cls.model = build_model(cls.cfg)
         cls.model.to(cls.device)
@@ -56,7 +56,7 @@ class testModel(unittest.TestCase):
     def setUpTimeTestingClass(cls):
         cls.iters = 50
 
-        h, w = 384, 1248
+        h, w = 384, 1280
         leftImage = torch.rand(1, 3, h, w).to(cls.device)
         rightImage = torch.rand(1, 3, h, w).to(cls.device)
         leftDisp = torch.rand(1, 1, h, w).to(cls.device)
@@ -87,7 +87,7 @@ class testModel(unittest.TestCase):
                 torch.cuda.synchronize(self.device)
         end_time = time.time()
         avg_time = (end_time - start_time) / self.iters
-        print('{} reference forward once takes {:.4f}s, i.e. {:.2f}fps'.format(module_name, avg_time, (1 / avg_time)))
+        print('{} reference forward once takes {:.4f}ms, i.e. {:.2f}fps'.format(module_name, avg_time*1000, (1 / avg_time)))
 
         if isinstance(module, nn.Module):
             module.train()
@@ -147,8 +147,9 @@ class testModel(unittest.TestCase):
         if 'costs' in result:
             print('Result for Cost: ')
             print('Length of cost list: ', len(result['costs']))
-            print(result['costs'][0].shape)
-            print('Device of cost: ', result['costs'][0].device)
+            if result['costs'][0] is not None:
+                print(result['costs'][0].shape)
+                print('Device of cost: ', result['costs'][0].device)
 
 
 if __name__ == '__main__':

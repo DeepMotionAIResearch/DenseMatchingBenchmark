@@ -1,11 +1,11 @@
 ##Model Info
 
-* Note: Test on GTX1080Ti, with resolution 384x1248.
+* Note: Test on GTX1080Ti, with resolution 384x1280.
 
 |    Model Name         |   FLOPS   | Parameters | FPS  | Time(ms) |
 |:---------------------:|:---------:|:----------:|:----:|:--------:|
-| StereoNet-8X-2stage   | 78.512G   |  399.066K  | 19.17|  52.2    |
-| StereoNet-8X-4stage   | 186.719G  |  624.860K  |  8.54|  117.0   |
+|    DeepPruner-4x      | 472.125G  |   7.390M   |  3.42|  292.4   |
+|    DeepPruner-8x      | 194.181G  |   7.470M   |  7.67|  130.4   |
 
 
 

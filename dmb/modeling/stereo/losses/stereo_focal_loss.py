@@ -98,6 +98,11 @@ class StereoFocalLoss(object):
         weight = (1.0 - scaled_gtProb).pow(-self.focal_coefficient).type_as(scaled_gtProb)
         loss = -((scaled_gtProb * estProb) * weight * mask.float()).sum() / valid_pixel_number
 
+        # stereo focal loss
+        # estProb = F.log_softmax(estCost, dim=1)
+        # weight = (1.0 - scaled_gtProb).pow(-self.focal_coefficient).type_as(scaled_gtProb)
+        # loss = -((scaled_gtProb * estProb) * weight * mask.float()).sum(dim=1, keepdim=True).mean()
+
         return loss
 
     def __call__(self, estCost, gtDisp, variance, disp_sample=None):

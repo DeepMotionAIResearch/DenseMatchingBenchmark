@@ -24,20 +24,20 @@ patch_match_disparity_sample_number=14
 uniform_disparity_sample_number=9
 
 model = dict(
-    meta_architecture="GeneralizedStereoModel",
+    meta_architecture="DeepPruner",
     # max disparity
     max_disp=max_disp,
     # the model whether or not to use BatchNorm
     batch_norm=True,
     backbone=dict(
-        type="DeepPruner",
+        type="FastDeepPruner",
         # the in planes of feature extraction backbone
         in_planes=3,
     ),
     disp_sampler=dict(
         type='DEEPPRUNER',
         # the maximum disparity of disparity search range under the resolution of feature
-        max_disp=int(max_disp//4),
+        max_disp=int(max_disp//8),
         # the filter size in propagation of PatchMatch
         propagation_filter_size=3,
         # number of PatchMatch iterations
@@ -57,7 +57,7 @@ model = dict(
         uniform_disparity_sample_number=uniform_disparity_sample_number,
         confidence_range_predictor = dict(
             # the in-planes of confidence range predictor, 2 * backbone.out_planes + 1
-            in_planes= 65,
+            in_planes= 2*32+1,
             # the in-planes of hourglass module when cost aggregating
             hourglass_in_planes = 16,
         ),
@@ -65,17 +65,26 @@ model = dict(
             type="DEEPPRUNER",
             # the in planes of cost aggregation sub network,
             # 2 * backbone.out_planes + 1 + 2 * patch_match_disparity_sample_number
-            in_planes=93,
+            in_planes=2*32+2*14+1,
             # the in-planes of hourglass module when cost aggregating
             hourglass_in_planes = 16,
         ),
+    ),
+    disp_refinement=dict(
+        type='DEEPPRUNER',
+        # the in planes list of each disparity refinement sub network
+        # backbone.out_planes + uniform_matching_disparity_sample_number + 1
+        # backbone_out_planes + 1
+        in_planes_list=[64+9+1, 32+1],
+        # the number of disparity refinement sub network
+        num=2,
     ),
     losses=dict(
         l1_loss=dict(
             # the maximum disparity of disparity search range
             max_disp=max_disp,
             # weights for different scale loss
-            weights=(1.0, 0.7, 0.5),
+            weights=(1.0, 1.0, 1.0, 1.0, 1.0),
             # weight for l1 loss with regard to other loss type
             weight=1.0,
         ),
@@ -98,8 +107,8 @@ dataset_type = 'SceneFlow'
 # data_root = 'datasets/{}/'.format(dataset_type)
 # annfile_root = osp.join(data_root, 'annotations')
 
-root = '/home/youmin/'
-# root = '/node01/jobs/io/out/youmin/'
+# root = '/home/youmin/'
+root = '/node01/jobs/io/out/youmin/'
 
 data_root = osp.join(root, 'data/StereoMatching/', dataset_type)
 annfile_root = osp.join(root, 'data/annotations/', dataset_type)
@@ -113,7 +122,7 @@ vis_annfile_root = osp.join(vis_data_root, 'annotations')
 data = dict(
     # whether disparity of datasets is sparse, e.g., SceneFLow is not sparse, but KITTI is sparse
     sparse=False,
-    imgs_per_gpu=3,
+    imgs_per_gpu=4,
     workers_per_gpu=16,
     train=dict(
         type=dataset_type,
@@ -128,7 +137,7 @@ data = dict(
         type=dataset_type,
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_test.json'),
-        input_shape=[544, 960],
+        input_shape=[576, 960],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
         use_right_disp=False,
@@ -138,7 +147,7 @@ data = dict(
         type=dataset_type,
         data_root=vis_data_root,
         annfile=osp.join(vis_annfile_root, 'vis_test.json'),
-        input_shape=[544, 960],
+        input_shape=[576, 960],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
     ),
@@ -146,7 +155,7 @@ data = dict(
         type=dataset_type,
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_test.json'),
-        input_shape=[544, 960],
+        input_shape=[576, 960],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
         use_right_disp=False,

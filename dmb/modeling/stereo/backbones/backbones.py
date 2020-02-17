@@ -1,14 +1,15 @@
 from .gc_net import GCNetBackbone
 from .psm_net import PSMNetBackbone
 from .stereo_net import StereoNetBackbone
-from .deep_pruner import DeepPrunerBackbone
+from .deep_pruner import DeepPrunerBestBackbone, DeepPrunerFastBackbone
 
 
 BACKBONES = {
     'GCNet': GCNetBackbone,
     'PSMNet': PSMNetBackbone,
     'StereoNet': StereoNetBackbone,
-    'DeepPruner': DeepPrunerBackbone,
+    'BestDeepPruner': DeepPrunerBestBackbone,
+    'FastDeepPruner': DeepPrunerFastBackbone,
 }
 
 def build_backbone(cfg):
@@ -18,7 +19,7 @@ def build_backbone(cfg):
         "model backbone type not found, excepted: {}," \
                         "but got {}".format(BACKBONES.keys, backbone_type)
 
-    default_args = cfg.model.backbone
+    default_args = cfg.model.backbone.copy()
     default_args.pop('type')
     default_args.update(batch_norm=cfg.model.batch_norm)
 

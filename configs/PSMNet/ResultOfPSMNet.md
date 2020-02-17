@@ -1,6 +1,6 @@
 ##Model Info
 
-* Note: Test on GTX1080Ti, with resolution 540x960.
+* Note: Test on GTX1080Ti, with resolution 384x1248.
 
 |    Model Name         |   FLOPS   | Parameters | FPS  | Time(ms) |
 |:---------------------:|:---------:|:----------:|:----:|:--------:|

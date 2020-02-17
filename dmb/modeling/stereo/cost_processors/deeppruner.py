@@ -218,10 +218,10 @@ class DeepPrunerProcessor(nn.Module):
             disparity = torch.sum(prob_volume * disparity_sample, dim=1, keepdim=True)
 
             # in: [B, 1, H, W], out: [B, 1, H*2, W*2]
-            disparity = F.interpolate(disparity*2, scale_factor=(2,2), mode='bilinear')
+            disparity = F.interpolate(disparity*2, scale_factor=(2,2), mode='bilinear', align_corners=False)
 
             # in: [B, D, H*2, W*2], out: [B, D, H*2, W*2]
-            disparity_feature = F.interpolate(cost, scale_factor=(2,2), mode='bilinear')
+            disparity_feature = F.interpolate(cost, scale_factor=(2,2), mode='bilinear', align_corners=False)
 
             # in: [B, 1, H*2, W*2], out: [B, 1, H*2, W*2]
             disparity = self.disparity_conv(disparity)

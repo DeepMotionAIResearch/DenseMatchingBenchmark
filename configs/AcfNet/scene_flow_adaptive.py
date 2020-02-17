@@ -43,6 +43,8 @@ model = dict(
             nll_loss=dict(
                 # the maximum disparity of disparity search range
                 max_disp=max_disp,
+                # the start disparity of disparity search range
+                start_disp=0,
                 # weight for confidence loss with regard to other loss type
                 weight=8.0,
                 # weights for different scale loss

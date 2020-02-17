@@ -7,6 +7,7 @@ class ConfidenceNllLoss(object):
     """
     Args:
         weights (list of float or None): weight for each scale of estCost.
+        start_disp (int): the start searching disparity index, usually be 0
         max_disp (int): the max of Disparity. default: 192
         sparse (bool): whether the ground-truth disparity is sparse,
             for example, KITTI is sparse, but SceneFlow is not. default is False
@@ -19,8 +20,9 @@ class ConfidenceNllLoss(object):
         weighted_loss_all_level (dict of Tensors): the weighted loss of all levels
     """
 
-    def __init__(self, max_disp, weights=None, sparse=False):
+    def __init__(self, max_disp, start_disp=0, weights=None, sparse=False):
         self.max_disp = max_disp
+        self.start_disp = start_disp
         self.weights = weights
         self.sparse = sparse
         if sparse:
@@ -42,7 +44,7 @@ class ConfidenceNllLoss(object):
 
         # mask for valid disparity
         # gt zero and lt max disparity
-        mask = (scaled_gtDisp > 0) & (scaled_gtDisp < (self.max_disp / scale))
+        mask = (scaled_gtDisp > self.start_disp) & (scaled_gtDisp < (self.max_disp / scale))
         mask = mask.detach_().type_as(gtDisp)
 
         # NLL loss
@@ -50,6 +52,8 @@ class ConfidenceNllLoss(object):
         if valid_pixel_number < 1.0:
             valid_pixel_number = 1.0
         loss = (-1.0 * F.logsigmoid(estConf) * mask).sum() / valid_pixel_number
+
+        # loss = (-1.0 * F.logsigmoid(estConf) * mask).mean()
 
         return loss
 

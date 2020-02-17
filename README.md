@@ -55,13 +55,13 @@ All our reimplemented methods will provide checkpoint in corresponding config fi
 
 
 
-|    Model   |   FLOPS   | Parameters | FPS  | Time(ms) | [SceneFlow (EPE)][3] | [KITTI 2012][2] | [KITTI 2015 (D1-all)][1] |
-|:----------:|:---------:|:----------:|:----:|:--------:|:---------------:|:----------:|:-------------------:|
-|   GCNet    |
-|   PSMNet   | 938.186G  |  5.225M    | 1.67 |  599.2   | 1.112 (*1.09*)  |            | 2.33 （*2.32*）|
-|   AcfNet   |
-|  StereoNet |
-|  DeepPruner|
+|        Model       |   FLOPS   | Parameters | FPS  | Time(ms) | [SceneFlow (EPE)][3] | [KITTI 2012][2] | [KITTI 2015 (D1-all)][1] |
+|:------------------:|:---------:|:----------:|:----:|:--------:|:---------------:|:----------:|:-------------------:|
+|       GCNet        |
+|       PSMNet       | 938.186G  |  5.225M    | 1.67 |  599.2   | 1.112 (*1.090*) |            | 2.33  (*2.32*)|
+|  AcfNet(uniform)   | 1080.0G   |  5.227M    | 1.66 |  600.8   | 0.870 (*0.920*) |            | 1.89  (*1.89*)|
+|StereoNet-8x-single |           |            |      |          | 1.761 (*1.525*) |
+|      DeepPruner    |
 
 
 ## Contributing
@@ -79,11 +79,11 @@ We wish that the toolbox and benchmark could serve the growing research communit
 If you use this toolbox or benchmark in your research, please cite this project.
 
 ```
-    @article{zhang2019adaptive,
+    @article{zhang2020adaptive,
       title={Adaptive Unimodal Cost Volume Filtering for Deep Stereo Matching},
-      author={Zhang, Youmin and Chen, Yimin and Bai, Xiao and Zhou, Jun and Yu, Kun and Li, Zhiwei and Yang, Kuiyuan},
-      journal={arXiv preprint arXiv:1909.03751},
-      year={2019}
+      author={Zhang, Youmin and Chen, Yimin and Bai, Xiao and Yu, Suihanjin and Yu, Kun and Li, Zhiwei and Yang, Kuiyuan},
+      journal={AAAI},
+      year={2020}
     }
 
 ```

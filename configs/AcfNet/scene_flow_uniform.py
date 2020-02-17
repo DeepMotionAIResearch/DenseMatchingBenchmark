@@ -140,7 +140,7 @@ data = dict(
     ),
 )
 
-optimizer = dict(type='RMSprop', lr=0.001)
+optimizer = dict(type='RMSprop', lr=0.0005)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 
 lr_config = dict(
@@ -177,7 +177,7 @@ load_from = None
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AcfNet/scene_flow_uniform')
+work_dir = osp.join(root, 'exps/AcfNet/scene_flow_uniform_lr0.0005')
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_10.pth')

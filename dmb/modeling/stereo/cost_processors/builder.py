@@ -23,7 +23,7 @@ class CatCostProcessor(CostProcessor):
         cat_func = cfg.model.cost_processor.cost_computation.get('type', 'default')
         self.cat_func = CAT_FUNCS[cat_func]
 
-        self.default_args = cfg.model.cost_processor.cost_computation
+        self.default_args = cfg.model.cost_processor.cost_computation.copy()
         self.default_args.pop('type')
 
         self.aggregator = build_cost_aggregator(cfg)
@@ -46,7 +46,7 @@ class DifCostProcessor(CostProcessor):
         dif_func = cfg.model.cost_processor.cost_computation.get('type', 'default')
         self.dif_func = DIF_FUNCS[dif_func]
 
-        self.default_args = cfg.model.cost_processor.cost_computation
+        self.default_args = cfg.model.cost_processor.cost_computation.copy()
         self.default_args.pop('type')
 
         self.aggregator = build_cost_aggregator(cfg)

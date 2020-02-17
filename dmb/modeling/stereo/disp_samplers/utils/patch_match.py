@@ -67,13 +67,13 @@ class DisparityInitialization(nn.Module):
         # Generate noise ranged in [0, 1], which submits to standard normal distribution
         # As each pixel should have its own disparity particles, rather than uniform for each pixel.
         # In [B, disparity_sample_number, H, W] layout
-        disparity_sample_noise = torch.randn(size=(B, self.disparity_sample_number, H, W), device=device)
+        disparity_sample_noise = min_disparity.new_empty(size=(B, self.disparity_sample_number, H, W), device=device).uniform_(0, 1)
 
         # the index for each sampled disparity candidates,
         # e.g., n = disparity_sample_number + 1, index = [1/n, 2/n, ..., (n-1)/n]
         # in [B, disparity_sample_number, H, W] layout
-        index = torch.arange(0, (self.disparity_sample_number + 1), 1) / (self.disparity_sample_number + 1)
-        index = index.view(1, self.disparity_sample_number, 1, 1)
+        index = torch.arange(1, (self.disparity_sample_number + 1), 1).float() / (self.disparity_sample_number + 1)
+        index = index.view(1, self.disparity_sample_number, 1, 1).to(device)
         disparity_sample_index = index.expand(B, self.disparity_sample_number, H, W).type_as(min_disparity)
 
         # the sampled disparity candidates, i.e., the minimum disparity in each interval
@@ -150,7 +150,7 @@ class Propagation(nn.Module):
             # when kernel_size=3, [0, 1, 2] -> [0, 1, 2, 0, 1, 2, 0, 1, 2]
             # [kernel_size, 1, 1, kernel_size, 1], in Width dimension
             index = torch.arange(0, kernel_size, device=device). \
-                repeat(kernel_size).view(kernel_size, 1, 1, 1, kernel_size)
+                repeat(kernel_size).view(kernel_size, 1, 1, kernel_size, 1)
 
             # [kernel_size, 1, 1, kernel_size, 1], [1, 0, 0], [0, 1, 0], [0, 0, 1]
             one_hot_filter = torch.zeros_like(index).scatter_(0, index, 1).float()
@@ -321,8 +321,8 @@ class PatchMatch(nn.Module):
 
         # [B, disparity_sample_number, H, W] -> [B, disparity_sample_number, propagation_filter_size, H, W]
         interval_min_disparity = interval_min_disparity.unsqueeze(2).repeat(1, 1, self.propagation_filter_size, 1, 1)
-        # [B, disparity_sample_number * propagation_filter_size, H, W]
-        interval_min_disparity = interval_min_disparity.view(B, self.disparity_sample_number * self.propagation_filter_size, H, W)
+        # [B, (disparity_sample_number-2) * propagation_filter_size, H, W], exclude min and max disparity sample
+        interval_min_disparity = interval_min_disparity.view(B, (self.disparity_sample_number-2) * self.propagation_filter_size, H, W)
 
         # propagation -> evaluation
         disparity_samples = None
@@ -330,7 +330,7 @@ class PatchMatch(nn.Module):
             # it's equal to propagate in disparity_sample_noise or real disparity_samples
             # integrate information from near pixels through horizontal propagation
             # [B, disparity_sample_number * propagation_filter_size, H, W]
-            disparity_sample_noise = self.propagation(disparity_sample_noise, device,
+            disparity_sample_noise = self.propagation(disparity_sample_noise,
                                                       propagation_type="horizontal")
 
             # noise in [0, 1] * [(max -min) / sample number] + minimum in each interval
@@ -344,7 +344,7 @@ class PatchMatch(nn.Module):
 
             # integrate information from near pixels through vertical propagation
             # [B, disparity_sample_number * propagation_filter_size, H, W]
-            disparity_sample_noise = self.propagation(disparity_sample_noise, device,
+            disparity_sample_noise = self.propagation(disparity_sample_noise,
                                                             propagation_type="vertical")
 
             # [B, disparity_sample_number * propagation_filter_size, H, W]

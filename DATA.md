@@ -48,8 +48,9 @@ To use, you just have to make the param 'data=dict(vis=...)' in config file vali
 
 ####Down Link
 The down-link for visualization data including:
-1. Baidu YunPan: https://pan.baidu.com/s/1oH1cAIwKysCKe5RuFP_zYQ  password: wyju
-2. Google Drive: on the way.
+1. Baidu YunPan: https://pan.baidu.com/s/1J7OBum7-kTFQV3Sbr3qT4w password: 0q8y
+2. Google Drive: https://drive.google.com/open?id=1oroPkS9bYBULvRW2olpA2wLgKSxU9Ovl
+
 
 ```
 visualization_data
@@ -65,7 +66,7 @@ visualization_data
     ├── __init__.py
     ├── annotations
     ├── disparity
-    ├── genExtraSFAnnoFile.py
+    ├── genVisSFAnnoFile.py
     ├── images
     ├── occ
     └── readme.txt
