@@ -27,12 +27,12 @@
 
 ### SceneFlow
 
-RMSProp, lr(15 epochs) schedule: 1-10 with lr\*1
+RMSProp, lr(11 epochs) schedule: 1-11 with lr\*1
 
 
 |    Model Name         |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time  | BaiDuYun | GoogleDrive |
 |:---------------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:-----:|:--------:|:-----------:|
-| StereoNet-8X-2stage   | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
+| StereoNet-8X-2stage   | 0.001 | 1*4       | ✗         |  ✓        | ✗         | ✗         | 1.533  | 40h56m|[link][1], pw: rza0 | [link][2]|
 
 
 
@@ -40,4 +40,8 @@ RMSProp, lr(15 epochs) schedule: 1-10 with lr\*1
 
 |  lr   |batch size | synced bn |loss scale | 3PE(px) & 5% | 
 |:-----:|:---------:|:---------:|:---------:|:------------:|
-| 0.001 | 4*3       |  ✓        | ✗         | 
+| 0.001 | 1*4       |  ✓        | ✗         | 
+
+
+[1]: https://pan.baidu.com/s/1cuvjEETJUnpnxy_pFqiTRw
+[2]: https://drive.google.com/open?id=1cuXzQDfQ28a9gmSJichaIGYsEITGp_Qh

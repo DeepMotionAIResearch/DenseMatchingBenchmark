@@ -46,7 +46,7 @@ model = dict(
                 # the start disparity of disparity search range
                 start_disp=0,
                 # weight for confidence loss with regard to other loss type
-                weight=8.0,
+                weight=20.0,
                 # weights for different scale loss
                 weights=(1.0, 0.7, 0.5),
             ),
@@ -88,7 +88,7 @@ model = dict(
             weights=(1.0, 0.7, 0.5),
             # stereo focal loss focal coefficient
             coefficient=5.0,
-            # the variance of unimodal distribution
+            # the variance of uni-modal distribution
             variance=None, # if not given, the variance will be estimated by network
         )
     ),
@@ -202,7 +202,7 @@ load_from = None
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AcfNet/scene_flow_adaptive')
+work_dir = osp.join(root, 'exps/AcfNet/scene_flow_adaptive_c20')
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_10.pth')

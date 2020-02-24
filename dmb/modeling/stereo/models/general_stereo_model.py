@@ -76,6 +76,7 @@ class GeneralizedStereoModel(nn.Module):
             loss_dict.update(gsm_loss_dict)
 
             return {}, loss_dict
+
         else:
 
             results = dict(

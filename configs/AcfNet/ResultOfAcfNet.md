@@ -1,6 +1,6 @@
 ##Model Info
 
-* Note: Test on GTX1080Ti, with resolution 540x960.
+* Note: Test on GTX1080Ti, with resolution 384x1248.
 
 |    Model Name         |   FLOPS   | Parameters | FPS  | Time(ms) |
 |:---------------------:|:---------:|:----------:|:----:|:--------:|
@@ -22,6 +22,7 @@
 * scale loss: the loss scale factor when using apex
 * time: time consuming including the training and evaluating time, in format: x h(hour) y m(minute)
 * EPE: end-point-error for SceneFlow
+* xPE (1PE, 2PE, 3PE, 5PE): pixel error where (GroundTruth - Estimation) <= x
 * D1(all): 3PE(px) & 5% for KITTI 2015
 
 
@@ -36,7 +37,29 @@ RMSProp, lr(10 epochs) schedule: 1-10 with lr\*1
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
 |    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         |
-|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8372 | 22h13m |
+|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8511 | 26h50m |
+
+
+##### Disparity Predictor Ablation
+
+If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin` during reference
+
+
+|   model name   | predictor |    1PE    |    2PE    |    3PE    |    5PE    | EPE(px)   |
+|:--------------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
+|    adaptive    |   Faster  |
+|    adaptive    |   Local   |
+|    uniform     |   Faster  |   8.626   |   5.544   |   4.291   |   3.061   |   0.8511  |
+|    uniform     |   Local   |   5.983   |   3.620   |   2.838   |   2.164   |   0.8216  |
+
+
+**Analysis**
+
+1. Little difference for `EPE`, but make significant effect on `xPE`.
+ 
+2. Therefor, to get better result on KITTI, alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin`
+
+3. `LocalSoftArgmin` only works when cost volume supervised with uni-modal distribution, worse result for PSMNet
 
 
 #### 20 epoch
@@ -47,8 +70,20 @@ RMSProp, lr(20 epochs) schedule: 1-20 with lr\*1
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
 |    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
-|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
+|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.7440 | 56h53m |
 
+
+##### Disparity Predictor Ablation
+
+If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin` during reference
+
+
+|   model name   | predictor |    1PE    |    2PE    |    3PE    |    5PE    | EPE(px)   |
+|:--------------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
+|    adaptive    |   Faster  |
+|    adaptive    |   Local   |
+|    uniform     |   Faster  |   7.647   |   4.917   |   4.381   |   2.693   |   0.7440  |
+|    uniform     |   Local   |   5.338   |   3.232   |   2.536   |   1.927   |   0.7161  |
 
 
 ### KITTI-2015
@@ -57,4 +92,4 @@ RMSProp, lr(20 epochs) schedule: 1-20 with lr\*1
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | D1(all) |  time  | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:-------:|:------:|:--------:|:-----------:|
 |    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
-|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
+|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 2.02    |

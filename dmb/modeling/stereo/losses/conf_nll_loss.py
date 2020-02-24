@@ -53,8 +53,6 @@ class ConfidenceNllLoss(object):
             valid_pixel_number = 1.0
         loss = (-1.0 * F.logsigmoid(estConf) * mask).sum() / valid_pixel_number
 
-        # loss = (-1.0 * F.logsigmoid(estConf) * mask).mean()
-
         return loss
 
     def __call__(self, estConf, gtDisp):

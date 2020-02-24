@@ -157,7 +157,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[15]
+    step=[11]
 )
 checkpoint_config = dict(
     interval=1
@@ -183,7 +183,7 @@ apex = dict(
     loss_scale=16,
 )
 
-total_epochs = 15
+total_epochs = 11
 
 gpus = 1
 dist_params = dict(backend='nccl')
@@ -195,5 +195,5 @@ workflow = [('train', 1)]
 work_dir = osp.join(root, 'exps/StereoNet/scene_flow_8x_2stage')
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_15.pth')
-out_dir = osp.join(work_dir, 'epoch_15')
+checkpoint = osp.join(work_dir, 'epoch_11.pth')
+out_dir = osp.join(work_dir, 'epoch_11')

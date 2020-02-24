@@ -32,7 +32,7 @@ RMSProp, lr(15 epochs) schedule: 1-10 with lr\*1
 
 |    Model Name         |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time  | BaiDuYun | GoogleDrive |
 |:---------------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:-----:|:--------:|:-----------:|
-| StereoNet-8X-2stage   | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
+|    DeepPruner-4x      | 0.001 | 4*2       | ✗         |  ✓        | ✗         | ✗         | 
 
 
 

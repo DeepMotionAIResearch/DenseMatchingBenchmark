@@ -86,7 +86,7 @@ model = dict(
             weights=(1.0, 0.7, 0.5),
             # stereo focal loss focal coefficient
             coefficient=5.0,
-            # the variance of unimodal distribution
+            # the variance of uni-modal distribution
             variance=None,  # if not given, the variance will be estimated by network
         )
     ),

@@ -3,6 +3,7 @@ from .psm import PSMAggregator
 from .acf import AcfAggregator
 from .stereonet import StereoNetAggregator
 from .deeppruner import DeepPrunerAggregator
+from .anynet import AnyNetAggregator
 
 AGGREGATORS = {
     "GC": GCAggregator,
@@ -10,6 +11,7 @@ AGGREGATORS = {
     "ACF": AcfAggregator,
     'STEREONET': StereoNetAggregator,
     'DEEPPRUNER': DeepPrunerAggregator,
+    'ANYNET': AnyNetAggregator,
 }
 
 

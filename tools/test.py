@@ -186,7 +186,7 @@ def parse_args():
     parser.add_argument('config', help='train config file path')
     parser.add_argument('--checkpoint', help='checkpoint file')
     parser.add_argument('--out_dir', help='output result directory')
-    parser.add_argument('--show', type=bool, default=False, help='show results in images')
+    parser.add_argument('--show', type=str, default='False', help='show results in images')
     parser.add_argument('--validate', action='store_true', help='whether to evaluate the result')
     parser.add_argument('--gpus', type=int, default=1,
         help='number of gpus to use (only applicable to non-distributed training)')
@@ -197,6 +197,15 @@ def parse_args():
         help='job launcher'
     )
     parser.add_argument('--local_rank', type=int, default=0)
+
+    # TODO del
+    parser.add_argument('--out_path', default='',
+                        help='needed by job client')
+    parser.add_argument('--in_path', default='',
+                        help='needed by job client')
+    parser.add_argument('--pretrained_path', default='', help='needed by job client')
+    parser.add_argument('--job_name', default='', help='needed by job client')
+    parser.add_argument('--job_id', default='', help='needed by job client')
 
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
@@ -226,13 +235,14 @@ def main():
         cfg.out_dir = args.out_dir
     if args.gpus is not None:
         cfg.gpus = args.gpus
-    cfg.show = args.show
+    cfg.show = True if args.show == 'True' else False
 
     mkdir_or_exist(cfg.out_dir)
 
     # init logger before other step and setup training logger
     logger = get_root_logger(cfg.out_dir, cfg.log_level, filename="test_log.txt")
-    logger.info("Using {} GPUs".format(cfg.gpus))
+    logger.info("Using {} GPUs".format(args.gpus))
+    logger.info("Whether the result will be saved to disk in image: {}".format(args.show))
     logger.info('Distributed training: {}'.format(distributed))
 
     # log environment info
@@ -252,10 +262,10 @@ def main():
 
     if not distributed:
         model = MMDataParallel(model, device_ids=[0])
-        outputs = single_gpu_test(model, test_dataset, cfg, args.show)
+        outputs = single_gpu_test(model, test_dataset, cfg, cfg.show)
     else:
         model = MMDistributedDataParallel(model.cuda())
-        outputs = multi_gpu_test(model, test_dataset, cfg, args.show, tmpdir=osp.join(cfg.out_dir, 'temp'))
+        outputs = multi_gpu_test(model, test_dataset, cfg, cfg.show, tmpdir=osp.join(cfg.out_dir, 'temp'))
 
     rank, _ = get_dist_info()
     if cfg.out_dir is not None and rank == 0:

@@ -5,6 +5,7 @@ from .utils.dif_fms import DIF_FUNCS
 from .aggregators import build_cost_aggregator
 
 from .deeppruner import DeepPrunerProcessor
+from .anynet import AnyNetProcessor
 
 
 class CostProcessor(nn.Module):
@@ -65,6 +66,7 @@ PROCESSORS = {
     'DIF': DifCostProcessor,
     'CAT': CatCostProcessor,
     'DEEPPRUNER': DeepPrunerProcessor,
+    'ANYNET': AnyNetProcessor,
 }
 
 def build_cost_processor(cfg):

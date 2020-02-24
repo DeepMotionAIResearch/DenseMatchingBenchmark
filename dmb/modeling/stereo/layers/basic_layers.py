@@ -4,6 +4,13 @@ import torch.nn.functional as F
 from torch.nn.modules.utils import _pair, _triple
 
 
+__all__ = ['conv_bn', 'deconv_bn',
+           'conv_bn_relu', 'bn_relu_conv', 'deconv_bn_relu',
+           'conv3d_bn', 'deconv3d_bn',
+           'conv3d_bn_relu', 'bn_relu_conv3d', 'deconv3d_bn_relu',
+           'BasicBlock',
+           ]
+
 def consistent_padding_with_dilation(padding, dilation, dim=2):
     assert dim == 2 or dim == 3, 'Convolution layer only support 2D and 3D'
     if dim == 2:
@@ -112,6 +119,25 @@ def conv_bn_relu(batchNorm, in_planes, out_planes, kernel_size=3, stride=1, padd
         )
 
 
+def bn_relu_conv(batchNorm, in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1, bias=True):
+    padding, dilation = consistent_padding_with_dilation(padding, dilation, dim=2)
+    if batchNorm:
+        return nn.Sequential(
+            nn.BatchNorm2d(in_planes),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(
+                in_planes, out_planes, kernel_size=kernel_size, stride=stride,
+                padding=padding, dilation=dilation, bias=bias),
+        )
+    else:
+        return nn.Sequential(
+            nn.ReLU(inplace=True),
+            nn.Conv2d(
+                in_planes, out_planes, kernel_size=kernel_size, stride=stride,
+                padding=padding, dilation=dilation, bias=bias),
+        )
+
+
 def deconv_bn_relu(batchNorm, in_planes, out_planes, kernel_size=4, stride=2, padding=1, output_padding=0, bias=True):
     if batchNorm:
         return nn.Sequential(
@@ -148,6 +174,26 @@ def conv3d_bn_relu(batchNorm, in_planes, out_planes, kernel_size=3, stride=1, pa
                 padding=padding, dilation=dilation, bias=bias
             ),
             nn.ReLU(inplace=True),
+        )
+
+
+def bn_relu_conv3d(batchNorm, in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1, bias=True):
+    padding, dilation = consistent_padding_with_dilation(padding, dilation, dim=3)
+    if batchNorm:
+        return nn.Sequential(
+            nn.BatchNorm3d(in_planes),
+            nn.ReLU(inplace=True),
+            nn.Conv3d(
+                in_planes, out_planes, kernel_size=kernel_size, stride=stride,
+                padding=padding, dilation=dilation, bias=bias),
+        )
+    else:
+        return nn.Sequential(
+            nn.ReLU(inplace=True),
+            nn.Conv3d(
+                in_planes, out_planes, kernel_size=kernel_size, stride=stride,
+                padding=padding, dilation=dilation, bias=bias
+            ),
         )
 
 

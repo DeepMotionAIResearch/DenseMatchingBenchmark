@@ -210,7 +210,7 @@ dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
 load_from = None
-resume_from = None
+resume_from = osp.join(root, 'exps/DeepPruner/scene_flow_4x/epoch_48.pth')
 workflow = [('train', 1)]
 work_dir = osp.join(root, 'exps/DeepPruner/scene_flow_4x')
 

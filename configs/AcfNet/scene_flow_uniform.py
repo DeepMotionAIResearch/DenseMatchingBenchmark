@@ -33,7 +33,7 @@ model = dict(
     ),
     disp_predictor=dict(
         # default FasterSoftArgmin
-        type="LOCAL",
+        type="LOCAL",  # "FASTER",  #
         # the maximum disparity of disparity search range
         max_disp=max_disp,
         # the radius of window when local sampling
@@ -63,9 +63,17 @@ model = dict(
             weights=(1.0, 0.7, 0.5),
             # stereo focal loss focal coefficient
             coefficient=5.0,
-            # the variance of unimodal distribution
+            # the variance of uni-modal distribution
             variance=1.2, # if not given, the variance will be estimated by network
-        )
+        ),
+        l1_loss=dict(
+            # the maximum disparity of disparity search range
+            max_disp=max_disp,
+            # weight for l1_loss with regard to other loss type
+            weight=0.1,
+            # weights for different scale loss
+            weights=(1.0, 0.7, 0.5),
+        ),
     ),
     eval=dict(
         # evaluate the disparity map within (lower_bound, upper_bound)
@@ -140,7 +148,7 @@ data = dict(
     ),
 )
 
-optimizer = dict(type='RMSprop', lr=0.0005)
+optimizer = dict(type='RMSprop', lr=0.001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 
 lr_config = dict(
@@ -177,8 +185,8 @@ load_from = None
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AcfNet/scene_flow_uniform_lr0.0005')
+work_dir = osp.join(root, 'exps/AcfNet/scene_flow_uniform_var1.2_l1')
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_10.pth')
-out_dir = osp.join(work_dir, 'epoch_10')
+checkpoint = osp.join(work_dir, 'epoch_19.pth')
+out_dir = osp.join(work_dir, 'epoch_19')

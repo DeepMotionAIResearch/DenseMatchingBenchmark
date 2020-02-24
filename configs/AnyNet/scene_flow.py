@@ -1,77 +1,112 @@
 # ------------------------------------------------------------------------------
-# Copyright (c) NKU
-# Licensed under the MIT License.
-# This is an reimplementation of the version written by Xuanyi Li (xuanyili.edu@gmail.com)
-# Original code: https://github.com/meteorshowers/StereoNet-ActiveStereoNet
+# This is an reimplementation of the version written by Wang, Yan
+# Original code: https://github.com/mileyan/AnyNet
 # ------------------------------------------------------------------------------
 import os.path as osp
 
 # model settings
 max_disp = 192
+C = 1
+
 model = dict(
     meta_architecture="GeneralizedStereoModel",
     # max disparity
     max_disp=max_disp,
     # the model whether or not to use BatchNorm
     batch_norm=True,
+    stage=['init_guess', 'warp_on_8', 'warp_on_4'],
     backbone=dict(
-        type="StereoNet",
+        type="AnyNet",
         # the in planes of feature extraction backbone
         in_planes=3,
-        # the number of down-sample module used, each decrease resolution to 1/2
-        downsample_num=3,
-        # the number of residual block used for feature extraction
-        residual_num=6,
+        # the base channels of convolution layer in AnyNet
+        C=C,
+        # the number of block
+        block_num=2,
     ),
     cost_processor=dict(
-        # Use the difference between left and right feature to form cost volume, then aggregation
-        type='DIF',
-        cost_computation = dict(
-            # default cat_fms
-            type="default",
+        # Use the concatenation of left and right feature to form cost volume, then aggregation
+        type='ANYNET',
+        cost_computation=dict(
+            # fast_cat_fms
+            type="fast_mode",
             # the maximum disparity of disparity search range under the resolution of feature
-            max_disp = int(max_disp // 8),
+            max_disp=dict(
+                init_guess=int(max_disp // 16),
+                warp_on_8=5,
+                warp_on_4=5,
+            ),
             # the start disparity of disparity search range
-            start_disp = 0,
+            start_disp=dict(
+                init_guess=0,
+                warp_on_8=-2,
+                warp_on_4=-2,
+            ),
             # the step between near disparity sample
-            dilation = 1,
+            dilation=dict(
+                init_guess=1,
+                warp_on_8=1,
+                warp_on_4=1,
+            ),
         ),
         cost_aggregator=dict(
-            type="STEREONET",
-            # the maximum disparity of disparity search range
-            max_disp = max_disp,
+            type="ANYNET",
             # the in planes of cost aggregation sub network
-            in_planes=32,
+            in_planes=dict(
+                init_guess=8*C,
+                warp_on_8=4*C,
+                warp_on_4=2*C,
+            ),
+            # the channels of middle 3d convolution layer
+            agg_planes=dict(
+                init_guess=16,
+                warp_on_8=4,
+                warp_on_4=4,
+            ),
+            # the number of middle 3d convolution layer
+            num=4,
+
         ),
     ),
     disp_predictor=dict(
         # default FasterSoftArgmin
-        type='FASTER',
+        type="FASTER",
         # the maximum disparity of disparity search range
-        max_disp = max_disp//8,
+        max_disp=dict(
+            init_guess=int(max_disp // 16),
+            warp_on_8=5,
+            warp_on_4=5,
+        ),
         # the start disparity of disparity search range
-        start_disp = 0,
+        start_disp=dict(
+            init_guess=0,
+            warp_on_8=-2,
+            warp_on_4=-2,
+        ),
         # the step between near disparity sample
-        dilation = 1,
+        dilation=dict(
+            init_guess=1,
+            warp_on_8=-1,
+            warp_on_4=-1,
+        ),
         # the temperature coefficient of soft argmin
         alpha=1.0,
         # whether normalize the estimated cost volume
         normalize=True,
-
     ),
     disp_refinement=dict(
-        type='STEREONET',
+        type='ANYNET',
         # the in planes of disparity refinement sub network
-        in_planes=4,
-        # the number of edge aware refinement module
-        num=3,
+        in_planes=3,
+        # the planes of convolution layer for spn
+        spn_planes=8,
     ),
     losses=dict(
         l1_loss=dict(
             # the maximum disparity of disparity search range
             max_disp=max_disp,
             # weights for different scale loss
-            weights=(1.0, 0.7, 0.5, 0.3),
+            weights=(1.0, 0.5),
             # weight for l1 loss with regard to other loss type
             weight=1.0,
         ),
@@ -109,8 +144,8 @@ vis_annfile_root = osp.join(vis_data_root, 'annotations')
 data = dict(
     # whether disparity of datasets is sparse, e.g., SceneFLow is not sparse, but KITTI is sparse
     sparse=False,
-    imgs_per_gpu=2,
-    workers_per_gpu=16,
+    imgs_per_gpu=4,
+    workers_per_gpu=4,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -157,7 +192,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[15]
+    step=[11]
 )
 checkpoint_config = dict(
     interval=1
@@ -183,7 +218,8 @@ apex = dict(
     loss_scale=16,
 )
 
-total_epochs = 15
+total_epochs = 11
+
 gpus = 1
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
@@ -191,8 +227,8 @@ validate = True
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/StereoNet/scene_flow_8x_4stage')
+work_dir = osp.join(root, 'exps/AnyNet/scene_flow')
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_15.pth')
-out_dir = osp.join(work_dir, 'epoch_15')
+checkpoint = osp.join(work_dir, 'epoch_11.pth')
+out_dir = osp.join(work_dir, 'epoch_11')

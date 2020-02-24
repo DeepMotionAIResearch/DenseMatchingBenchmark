@@ -1,10 +1,54 @@
 #!/usr/bin/env bash
 
+
 if [[ $1 == 'GANet' || $1 == 'all' ]]
 then
-    echo "GANet hasn't integrated into dmb! Nothing installed."
+    cd dmb/ops/libGANet/
+
+    python setup.py clean
+
+    if [[ $2 == 'install' ]]
+    then
+        python setup.py install
+    else
+        rm -rf build
+        python setup.py build develop
+        cp -r build/lib* build/lib
+    fi
+
+    cd ../../../
+
+    echo "*********************************************************************"
+    echo "                         GANet installed!"
+    echo "*********************************************************************"
 
 fi
+
+
+if [[ $1 == 'spn' || $1 == 'all' ]]
+then
+
+    cd dmb/ops/spn/
+
+    python setup.py clean
+
+    if [[ $2 == 'install' ]]
+    then
+        python setup.py install
+    else
+        rm -rf build
+        python setup.py build develop
+        cp -r build/lib* build/lib
+    fi
+
+    cd ../../../
+
+    echo "*********************************************************************"
+    echo "                         SPN installed!"
+    echo "*********************************************************************"
+
+fi
+
 
 if [[ $1 == 'dmb' || $1 == 'all' ]]
 then
@@ -17,9 +61,16 @@ then
     else
         rm -r build
         python setup.py build develop
+        cp -r build/lib* build/lib
     fi
-    echo "dmb installed!"
+
+    echo "*********************************************************************"
+    echo "                         dmb installed!"
+    echo "*********************************************************************"
 
 fi
 
-echo "Dense Matching Benchmark Installed!"
+
+echo "*********************************************************************"
+echo "                Dense Matching Benchmark Installed!"
+echo "*********************************************************************"

@@ -48,9 +48,9 @@ cd DenseMatchingBenchmark
 
 e. Install DenseMatchingBenchmark(other dependencies will be installed optionally).
 ```bash
-# libs include: dmb
+# libs include: dmb, spn, GANet
 
-# the $1 can be: 'all', 'dmb'
+# the $1 can be: 'all', 'dmb', 'spn', 'GANet'
 # => install all libs or specific lib, e.g. dmb
 
 # the $2 can be: 'install'

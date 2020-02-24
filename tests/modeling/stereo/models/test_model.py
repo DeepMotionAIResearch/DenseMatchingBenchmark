@@ -42,9 +42,9 @@ class testModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.device = torch.device('cuda:3')
+        cls.device = torch.device('cuda:7')
         config_path = '/home/zhixiang/youmin/projects/depth/public/' \
-                      'DenseMatchingBenchmark/configs/DeepPruner/scene_flow_4x.py' # AcfNet/scene_flow_adaptive.py' #
+                      'DenseMatchingBenchmark/configs/AcfNet/scene_flow_uniform.py'
         cls.cfg = Config.fromfile(config_path)
         cls.model = build_model(cls.cfg)
         cls.model.to(cls.device)
