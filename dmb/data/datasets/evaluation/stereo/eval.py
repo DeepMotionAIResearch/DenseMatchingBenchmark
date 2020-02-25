@@ -119,7 +119,7 @@ def do_occlusion_evaluation(est_disp, ref_gt_disp, target_gt_disp, lb, ub):
         lb=lb, ub=ub
     )
     for key in occlusion_error_dict.keys():
-        error_dict['occ/' + key] = occlusion_error_dict[key]
+        error_dict['occ_' + key] = occlusion_error_dict[key]
 
     not_occlusion = 1.0 - occlusion
     not_occlusion_error_dict = calc_error(
@@ -128,6 +128,6 @@ def do_occlusion_evaluation(est_disp, ref_gt_disp, target_gt_disp, lb, ub):
         lb=lb, ub=ub
     )
     for key in not_occlusion_error_dict.keys():
-        error_dict['noc/' + key] = not_occlusion_error_dict[key]
+        error_dict['noc_' + key] = not_occlusion_error_dict[key]
 
     return error_dict

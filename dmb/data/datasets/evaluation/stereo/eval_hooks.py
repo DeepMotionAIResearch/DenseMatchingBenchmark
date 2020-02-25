@@ -1,6 +1,7 @@
 import os
 import os.path as osp
 from collections import abc as container_abcs
+import pandas as pd
 
 import numpy as np
 
@@ -28,6 +29,59 @@ def to_cpu(tensor):
         return [to_cpu(samples) for samples in tensor]
 
     raise TypeError((error_msg.format(type(tensor))))
+
+def disp_evaluation(cfg, disps, leftDisp=None, rightDisp=None):
+    # default only evaluate the first disparity map
+    eval_disparity_id = cfg.get('eval_disparity_id', [0])
+    whole_error_dict = {}
+
+    for id in eval_disparity_id:
+        all_error_dict = do_evaluation(
+            disps[id], leftDisp, cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
+
+        for key in all_error_dict.keys():
+            whole_error_dict['metric_disparity_{}/all_'.format(id) + key] = all_error_dict[key]
+
+        if cfg.model.eval.eval_occlusion and (leftDisp is not None) and (rightDisp is not None):
+
+            noc_occ_error_dict = do_occlusion_evaluation(
+                disps[0], leftDisp, rightDisp,
+                cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
+
+            for key in noc_occ_error_dict.keys():
+                whole_error_dict['metric_disparity_{}/'.format(id) + key] = noc_occ_error_dict[key]
+
+    return whole_error_dict
+
+def output_evaluation_in_pandas(output_dict):
+    processed_dict = {}
+    pandas_dict = {}
+    for key in output_dict.keys():
+        # format value
+        val = output_dict[key]
+
+        if isinstance(val, float):
+            val = "{:.4f}".format(val)
+
+        if 'metric_disparity' in key: # e.g. 'metric_disparity_0/all_epe'
+            disparity_id = key.split('/')[0]
+            area, metric = key.split('/')[1].split('_')
+
+            # each disparity contains one pd.DataFrame, area as index, metric as columns
+            if disparity_id not in pandas_dict.keys():
+                pandas_dict[disparity_id] = {}
+            if area not in pandas_dict[disparity_id].keys():
+                pandas_dict[disparity_id][area] = {}
+            pandas_dict[disparity_id][area][metric] = val
+
+        else:
+            processed_dict[key] = val
+
+    # generate pandas
+    for key in pandas_dict:
+        processed_dict[key] = pd.DataFrame.from_dict(pandas_dict[key], orient='index')
+
+    return processed_dict
 
 
 class DistEvalHook(Hook):
@@ -69,25 +123,22 @@ class DistEvalHook(Hook):
 
                 ori_size = data_gpu['original_size']
                 disps = remove_padding(disps, ori_size)
-                target = data_gpu['leftDisp'] if 'leftDisp' in data_gpu else None
-                if target is not None:
-                    target = remove_padding(target, ori_size)
-                error_dict = do_evaluation(
-                    disps[0], target, self.cfg.model.eval.lower_bound, self.cfg.model.eval.upper_bound)
 
-                if self.cfg.model.eval.eval_occlusion and 'leftDisp' in data_gpu and 'rightDisp' in data_gpu:
+                # process the ground truth disparity map
+                data_gpu['leftDisp'] = data_gpu['leftDisp'] if 'leftDisp' in data_gpu else None
+                if data_gpu['leftDisp'] is not None:
                     data_gpu['leftDisp'] = remove_padding(data_gpu['leftDisp'], ori_size)
+                data_gpu['rightDisp'] = data_gpu['rightDisp'] if 'rightDisp' in data_gpu else None
+                if data_gpu['rightDisp'] is not None:
                     data_gpu['rightDisp'] = remove_padding(data_gpu['rightDisp'], ori_size)
 
-                    occ_error_dict = do_occlusion_evaluation(
-                        disps[0], data_gpu['leftDisp'], data_gpu['rightDisp'],
-                        self.cfg.model.eval.lower_bound, self.cfg.model.eval.upper_bound)
-                    error_dict.update(occ_error_dict)
+                # evaluation
+                whole_error_dict = disp_evaluation(self.cfg, disps, data_gpu['leftDisp'], data_gpu['rightDisp'])
 
                 result = {
                     'Disparity': disps,
-                    'GroundTruth': target,
-                    'Error': error_dict,
+                    'GroundTruth': data_gpu['leftDisp'],
+                    'Error': whole_error_dict,
                 }
 
                 if self.cfg.model.eval.is_cost_return:
@@ -145,18 +196,25 @@ class DistStereoEvalHook(DistEvalHook):
         for result in results:
             error_log_buffer.update(result['Error'])
         error_log_buffer.average()
-        log_items = []
+
+        # import to tensor-board
         for key in error_log_buffer.output.keys():
             runner.log_buffer.output[key] = error_log_buffer.output[key]
 
-            val = error_log_buffer.output[key]
+        # for better visualization, format into pandas
+        format_output_dict = output_evaluation_in_pandas(error_log_buffer.output)
+
+        runner.logger.info("Epoch [{}] Evaluation Result: \t".format(runner.epoch + 1))
+
+        log_items = []
+        for key, val in format_output_dict.items():
+            if isinstance(val, pd.DataFrame):
+                log_items.append("\n {}:\n {} \n".format(key, val))
             if isinstance(val, float):
                 val = "{:.4f}".format(val)
-            log_items.append("{}: {}".format(key, val))
+                log_items.append("{}: {}".format(key, val))
 
-        # runner.epoch start at 0
-        log_str = "Epoch [{}] Evaluation Result: \t".format(runner.epoch + 1)
-        log_str += ", ".join(log_items)
+        log_str = ", ".join(log_items)
         runner.logger.info(log_str)
         runner.log_buffer.ready = True
         error_log_buffer.clear()

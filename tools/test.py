@@ -3,6 +3,7 @@ import os
 import os.path as osp
 import shutil
 import tempfile
+import pandas as pd
 
 import sys
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
@@ -25,7 +26,8 @@ from dmb.utils.env import init_dist, get_root_logger
 from dmb.modeling.stereo import build_stereo_model as build_model
 from dmb.data.datasets.stereo import build_dataset
 from dmb.apis.inference import save_result
-from dmb.data.datasets.evaluation.stereo.eval import remove_padding, do_evaluation, do_occlusion_evaluation
+from dmb.data.datasets.evaluation.stereo.eval import remove_padding
+from dmb.data.datasets.evaluation.stereo.eval_hooks import disp_evaluation, output_evaluation_in_pandas
 from dmb.visualization.stereo import sparsification_plot
 
 
@@ -82,27 +84,22 @@ def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
 
             ori_size = data['original_size']
             disps = remove_padding(disps, ori_size)
-            target = data['leftDisp'] if 'leftDisp' in data else None
-            if target is not None:
-                target = remove_padding(target, ori_size)
 
-            # In this framework, we always set the first result, e.g., disparity map, as the best.
-            error_dict = do_evaluation(
-                disps[0], target, cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
-
-            if cfg.model.eval.eval_occlusion and 'leftDisp' in data and 'rightDisp' in data:
+            # process the ground truth disparity map
+            data['leftDisp'] = data['leftDisp'] if 'leftDisp' in data else None
+            if data['leftDisp'] is not None:
                 data['leftDisp'] = remove_padding(data['leftDisp'], ori_size)
+            data['rightDisp'] = data['rightDisp'] if 'rightDisp' in data else None
+            if data['rightDisp'] is not None:
                 data['rightDisp'] = remove_padding(data['rightDisp'], ori_size)
 
-                occ_error_dict = do_occlusion_evaluation(
-                    disps[0], data['leftDisp'], data['rightDisp'],
-                    cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
-                error_dict.update(occ_error_dict)
+            # evaluation
+            whole_error_dict = disp_evaluation(cfg.copy(), disps, data['leftDisp'], data['rightDisp'])
 
             result = {
                 'Disparity': disps,
-                'GroundTruth': target,
-                'Error': error_dict,
+                'GroundTruth': data['leftDisp'],
+                'Error': whole_error_dict,
             }
 
             if hasattr(cfg.model, 'cmn'):
@@ -278,21 +275,29 @@ def main():
             for result in outputs:
                 error_log_buffer.update(result['Error'])
             error_log_buffer.average()
-            log_items = []
-            for key in error_log_buffer.output.keys():
 
-                val = error_log_buffer.output[key]
+            # for better visualization, format into pandas
+            format_output_dict = output_evaluation_in_pandas(error_log_buffer.output)
+
+            log_items = []
+            for key, val in format_output_dict.items():
+                if isinstance(val, pd.DataFrame):
+                    log_items.append("\n {}:\n {} \n".format(key, val))
                 if isinstance(val, float):
-                    val = '{:.4f}'.format(val)
-                log_items.append('{}: {}'.format(key, val))
+                    val = "{:.4f}".format(val)
+                    log_items.append("{}: {}".format(key, val))
 
             if len(error_log_buffer.output) == 0:
                 log_items.append('nothing to evaluate!')
 
             log_str = 'Evaluation Result: \t'
-            log_str += ', '.join(log_items)
+            log_str += ", ".join(log_items)
             logger.info(log_str)
             error_log_buffer.clear()
+
+
+
+
 
 
 if __name__ == '__main__':

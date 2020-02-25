@@ -44,7 +44,7 @@ class testModel(unittest.TestCase):
     def setUpClass(cls):
         cls.device = torch.device('cuda:7')
         config_path = '/home/zhixiang/youmin/projects/depth/public/' \
-                      'DenseMatchingBenchmark/configs/AcfNet/scene_flow_uniform.py'
+                      'DenseMatchingBenchmark/configs/AnyNet/scene_flow.py'
         cls.cfg = Config.fromfile(config_path)
         cls.model = build_model(cls.cfg)
         cls.model.to(cls.device)

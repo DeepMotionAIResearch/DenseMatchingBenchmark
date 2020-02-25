@@ -50,7 +50,7 @@ class AnyNetRefinement(nn.Module):
         self.classify = nn.Conv2d(spn_planes, 1, kernel_size=3,
                                    stride=1, padding=1, dilation=1, bias=False)
 
-        # left->right propagation: Propagator = GateRecurrent2dnoind(True, False)
+        # left->right propagation
         self.spn = GateRecurrent2dnoind(True,False)
 
 

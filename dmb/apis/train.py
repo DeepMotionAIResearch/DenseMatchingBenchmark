@@ -152,7 +152,7 @@ def _dist_train(
             logger.info("Register Evaluation Hook...")
             runner.register_hook(DistStereoEvalHook(cfg, eval_dataset, interval))
         if vis_dataset is not None:
-            logger.info("Register Visulization hook...")
+            logger.info("Register Visualization hook...")
             runner.register_hook(DistStereoVisHook(vis_dataset, cfg, interval))
 
     if cfg.resume_from:

@@ -9,7 +9,7 @@ max_disp = 192
 C = 1
 
 model = dict(
-    meta_architecture="GeneralizedStereoModel",
+    meta_architecture="AnyNet",
     # max disparity
     max_disp=max_disp,
     # the model whether or not to use BatchNorm
@@ -86,8 +86,8 @@ model = dict(
         # the step between near disparity sample
         dilation=dict(
             init_guess=1,
-            warp_on_8=-1,
-            warp_on_4=-1,
+            warp_on_8=1,
+            warp_on_4=1,
         ),
         # the temperature coefficient of soft argmin
         alpha=1.0,
@@ -106,7 +106,7 @@ model = dict(
             # the maximum disparity of disparity search range
             max_disp=max_disp,
             # weights for different scale loss
-            weights=(1.0, 0.5),
+            weights=(1.0, 1.0, 0.5, 0.25),
             # weight for l1 loss with regard to other loss type
             weight=1.0,
         ),
@@ -144,8 +144,8 @@ vis_annfile_root = osp.join(vis_data_root, 'annotations')
 data = dict(
     # whether disparity of datasets is sparse, e.g., SceneFLow is not sparse, but KITTI is sparse
     sparse=False,
-    imgs_per_gpu=4,
-    workers_per_gpu=4,
+    imgs_per_gpu=6,
+    workers_per_gpu=8,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -175,8 +175,10 @@ data = dict(
     ),
     test=dict(
         type=dataset_type,
-        data_root=data_root,
-        annfile=osp.join(annfile_root, 'cleanpass_test.json'),
+        data_root=vis_data_root,
+        annfile=osp.join(vis_annfile_root, 'vis_test.json'),
+        # data_root=data_root,
+        # annfile=osp.join(annfile_root, 'cleanpass_test.json'),
         input_shape=[544, 960],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
@@ -184,7 +186,7 @@ data = dict(
     ),
 )
 
-optimizer = dict(type='RMSprop', lr=0.001)
+optimizer = dict(type='RMSprop', lr=5e-4)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 
 lr_config = dict(
@@ -192,7 +194,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[11]
+    step=[10]
 )
 checkpoint_config = dict(
     interval=1
@@ -218,9 +220,13 @@ apex = dict(
     loss_scale=16,
 )
 
-total_epochs = 11
+total_epochs = 10
 
-gpus = 1
+# each model will return several disparity maps, but not all of them need to be evaluated
+# here, by giving indexes, the framework will evaluate the corresponding disparity map
+eval_disparity_id = [0, 1, 2, 3]
+
+gpus = 4
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
@@ -230,5 +236,5 @@ workflow = [('train', 1)]
 work_dir = osp.join(root, 'exps/AnyNet/scene_flow')
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_11.pth')
-out_dir = osp.join(work_dir, 'epoch_11')
+checkpoint = osp.join(work_dir, 'epoch_1.pth')
+out_dir = osp.join(work_dir, 'epoch_1')
