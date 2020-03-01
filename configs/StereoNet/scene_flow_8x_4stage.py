@@ -149,6 +149,9 @@ data = dict(
     ),
 )
 
+# Although The optimizer used in StereoNet:
+# RMSProp with an exponentially-decaying learning rate initially set to 1e−3,
+# We still use constant learning rate here.
 optimizer = dict(type='RMSprop', lr=0.001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 

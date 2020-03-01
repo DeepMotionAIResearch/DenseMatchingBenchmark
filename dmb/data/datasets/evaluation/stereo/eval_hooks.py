@@ -30,11 +30,13 @@ def to_cpu(tensor):
 
     raise TypeError((error_msg.format(type(tensor))))
 
+
 def disp_evaluation(cfg, disps, leftDisp=None, rightDisp=None):
     # default only evaluate the first disparity map
     eval_disparity_id = cfg.get('eval_disparity_id', [0])
     whole_error_dict = {}
 
+    # process disparity metric
     for id in eval_disparity_id:
         all_error_dict = do_evaluation(
             disps[id], leftDisp, cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
@@ -45,13 +47,14 @@ def disp_evaluation(cfg, disps, leftDisp=None, rightDisp=None):
         if cfg.model.eval.eval_occlusion and (leftDisp is not None) and (rightDisp is not None):
 
             noc_occ_error_dict = do_occlusion_evaluation(
-                disps[0], leftDisp, rightDisp,
+                disps[id], leftDisp, rightDisp,
                 cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
 
             for key in noc_occ_error_dict.keys():
                 whole_error_dict['metric_disparity_{}/'.format(id) + key] = noc_occ_error_dict[key]
 
     return whole_error_dict
+
 
 def output_evaluation_in_pandas(output_dict):
     processed_dict = {}
@@ -63,7 +66,7 @@ def output_evaluation_in_pandas(output_dict):
         if isinstance(val, float):
             val = "{:.4f}".format(val)
 
-        if 'metric_disparity' in key: # e.g. 'metric_disparity_0/all_epe'
+        if 'metric_disparity' in key:  # e.g. 'metric_disparity_0/all_epe'
             disparity_id = key.split('/')[0]
             area, metric = key.split('/')[1].split('_')
 
@@ -73,6 +76,17 @@ def output_evaluation_in_pandas(output_dict):
             if area not in pandas_dict[disparity_id].keys():
                 pandas_dict[disparity_id][area] = {}
             pandas_dict[disparity_id][area][metric] = val
+
+        elif 'metric_confidence' in key: # e.g. 'metric_confidence_0/est_0'
+            confidence_id = key.split('/')[0]
+            sparse_type, percent = key.split('/')[1].split('_')
+
+            # each confidence contains one pd.DataFrame, sparse_type as index, percent as columns
+            if confidence_id not in pandas_dict.keys():
+                pandas_dict[confidence_id] = {}
+            if sparse_type not in pandas_dict[confidence_id].keys():
+                pandas_dict[confidence_id][sparse_type] = {}
+            pandas_dict[confidence_id][sparse_type][percent] = val
 
         else:
             processed_dict[key] = val
@@ -209,9 +223,11 @@ class DistStereoEvalHook(DistEvalHook):
         log_items = []
         for key, val in format_output_dict.items():
             if isinstance(val, pd.DataFrame):
-                log_items.append("\n {}:\n {} \n".format(key, val))
-            if isinstance(val, float):
+                log_items.append("\n{}:\n{} \n".format(key, val))
+            elif isinstance(val, float):
                 val = "{:.4f}".format(val)
+                log_items.append("{}: {}".format(key, val))
+            else:
                 log_items.append("{}: {}".format(key, val))
 
         log_str = ", ".join(log_items)

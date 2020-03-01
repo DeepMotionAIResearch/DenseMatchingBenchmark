@@ -42,7 +42,7 @@ class testModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.device = torch.device('cuda:7')
+        cls.device = torch.device('cuda:1')
         config_path = '/home/zhixiang/youmin/projects/depth/public/' \
                       'DenseMatchingBenchmark/configs/AnyNet/scene_flow.py'
         cls.cfg = Config.fromfile(config_path)
@@ -94,12 +94,12 @@ class testModel(unittest.TestCase):
 
         self.avg_time[module_name] = avg_time
 
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("demonstrating skipping")
     def test_0_OutputModel(self):
         print(self.model)
         calcFlops(self.model, self.model_input['batch'])
 
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("demonstrating skipping")
     def test_1_ModelTime(self):
         self.timeTemplate(self.model, 'Model', **self.model_input)
 

@@ -15,7 +15,7 @@ if test_dif_fms:
 
 
 
-class TestComputation(unittest.TestCase):
+class TestCostComputation(unittest.TestCase):
 
     def setUp(self):
         self.device = torch.device('cuda:1')
@@ -134,7 +134,7 @@ if __name__ == '__main__':
 
 '''
 
-Test on GTX1080Ti
+Test on GTX1080Ti, 540x960
 
 CAT_FMS reference forward once takes 0.2021s, i.e. 4.95fps
 FAST_CAT_FMS reference forward once takes 0.0292s, i.e. 34.27fps

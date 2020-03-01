@@ -29,10 +29,12 @@
 
 RMSProp, lr(11 epochs) schedule: 1-11 with lr\*1
 
+- Inference with 1 GPU takes long time
 
-|    Model Name         |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time  | BaiDuYun | GoogleDrive |
-|:---------------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:-----:|:--------:|:-----------:|
-| StereoNet-8X-2stage   | 0.001 | 1*4       | ✗         |  ✓        | ✗         | ✗         | 1.533  | 40h56m|[link][1], pw: rza0 | [link][2]|
+|    Model Name         |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
+|:---------------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
+| StereoNet-8X-2stage   | 0.001 | 1*4       | ✗         |  ✓        | ✗         | ✗         | 1.533  | 40h56m |[link][1], pw: rza0 | [link][2]|
+| StereoNet-8X-4stage   | 0.001 | 1*4       | ✗         |  ✓        | ✗         | ✗         | 1.329  | 143h45m|[link][3], pw: gpjm | [link][4]|
 
 
 
@@ -45,3 +47,5 @@ RMSProp, lr(11 epochs) schedule: 1-11 with lr\*1
 
 [1]: https://pan.baidu.com/s/1cuvjEETJUnpnxy_pFqiTRw
 [2]: https://drive.google.com/open?id=1cuXzQDfQ28a9gmSJichaIGYsEITGp_Qh
+[3]: https://pan.baidu.com/s/13DOhuuvqvNL9ksg5_85GEw
+[4]: https://drive.google.com/open?id=10TYF5SqN26-GsVIf2ytXALbNMBgOLH_1

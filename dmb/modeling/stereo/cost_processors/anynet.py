@@ -2,44 +2,24 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from dmb.modeling.stereo.layers.basic_layers import conv3d_bn, conv3d_bn_relu, conv_bn_relu
-from dmb.modeling.stereo.cost_processors.utils.hw_hourglass import HWHourglass
 from .utils.dif_fms import fast_dif_fms
 from .aggregators.anynet import AnyNetAggregator
 
 class AnyNetProcessor(nn.Module):
     """
-    An implementation of cost procession in DeepPruner
+    An implementation of cost procession in AnyNet
 
     Inputs:
-        stage, (str): "pre"(Pre-PatchMatch) using patch match as sampler,
-                   or "post"(Post-ConfidenceRangePredictor) using uniform sampler
+        stage, (str): 'init_guess', the coarsest disparity estimation,
+                      'warp_level_8', refine the disparity estimation with feature warp at resolution=1/8
+                      'warp_level_4', refine the disparity estimation with feature warp at resolution=1/4
         left, (tensor): Left image feature, in [BatchSize, Channels, Height, Width] layout
         right, (tensor): Right image feature, in [BatchSize, Channels, Height, Width] layout
-        disparity_sample, (tensor): The generated disparity samples for each pixel,
-                           in [BatchSize, disparity_sample_number, Height, Width] layout
-        min_disparity_feature, (tensor): the features used to estimate lower bound of disparity,
-                  in [BatchSize, disparity_sample_number, Height, Width] layout
-        max_disparity_feature, (tensor): the features used to estimate upper bound of disparity,
-                  in [BatchSize, disparity_sample_number, Height, Width] layout
+        disp, (tensor): Disparity map outputted from last stage, in [BatchSize, 1, Height, Width] layout
 
     Outputs:
-        output, (tuple):
-            For 'pre' stage, including:
-            min_disparity, (tensor): the estimated lower bound of disparity,
-                      in [BatchSize, 1, Height, Width] layout
-            max_disparity, (tensor): the estimated upper bound of disparity,
-                      in [BatchSize, 1, Height, Width] layout
-            min_disparity_feature, (tensor): the features used to estimate lower bound of disparity,
-                      in [BatchSize, patch_match_disparity_sample_number, Height, Width] layout
-            max_disparity_feature, (tensor): the features used to estimate upper bound of disparity,
-                      in [BatchSize, patch_match_disparity_sample_number, Height, Width] layout
-
-            For 'post' stage, including:
-            disparity, (tensor): the estimated disparity map,
-                      in [BatchSize, 1, Height, Width] layout
-            disparity_feature, (tensor): the features used to estimate aggregated disparity,
-                      in [BatchSize, uniform_disparity_sample_number, Height, Width] layout
+        cost_volume (tuple of Tensor): cost volume
+            in [BatchSize, MaxDisparity, Height, Width] layout
 
     """
 
@@ -92,7 +72,7 @@ class AnyNetProcessor(nn.Module):
         # [B, C, D, H, W]
         raw_cost = fast_dif_fms(left, right, disp_sample=disp_sample)
 
-        # [B, D, H, W]
+        # list [[B, D, H, W]]
         cost = self.aggregator[stage](raw_cost)
 
         return cost

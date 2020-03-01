@@ -44,7 +44,7 @@ model = dict(
                 # the maximum disparity of disparity search range
                 max_disp=max_disp,
                 # weight for confidence loss with regard to other loss type
-                weight=8.0,
+                weight=20.0,
                 # weights for different scale loss
                 weights=(1.0, 0.7, 0.5),
             ),
@@ -202,15 +202,19 @@ total_epochs = 600
 # every n epoch evaluate
 validate_interval = 25
 
+# each model will return several disparity maps, but not all of them need to be evaluated
+# here, by giving indexes, the framework will evaluate the corresponding disparity map
+eval_disparity_id = [0, 1, 2]
+
 gpus = 4
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
-load_from = osp.join(root, 'exps/AcfNet/scene_flow_adaptive/epoch_20.pth')
+load_from = osp.join(root, 'exps/AcfNet/scene_flow_adaptive_c20/epoch_20.pth')
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AcfNet/kitti_2015_adaptive')
+work_dir = osp.join(root, 'exps/AcfNet/kitti_2015_adaptive_c20')
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_600.pth')

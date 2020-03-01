@@ -61,7 +61,7 @@ All our reimplemented methods will provide checkpoint in corresponding config fi
 |  AcfNet(uniform)   | 1080.0G   |  5.227M    | 1.66 |  600.8   | 0.851 (*0.920*) |            |   (*1.89*)|
 |StereoNet-8x-single | 78.512G   |  399.066K  | 19.17|  52.2    | 1.533 (*1.525*) |
 |      DeepPruner    |
-
+|       AnyNet       |  1.476G   |  46.987K   |      |          | 3.190 (*~3.2*)  |
 
 ## Contributing
 

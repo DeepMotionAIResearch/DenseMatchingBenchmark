@@ -31,14 +31,14 @@ from dmb.data.datasets.evaluation.stereo.eval_hooks import disp_evaluation, outp
 from dmb.visualization.stereo import sparsification_plot
 
 
-def sparsification_eval(result, cfg):
+def sparsification_eval(result, cfg, id=0):
     if hasattr(cfg, 'sparsification_plot') and cfg.sparsification_plot.doing:
-        if 'Confidence' in result and isinstance(result['Confidence'][0], torch.Tensor):
-            estConf = result['Confidence'][0].clone()
+        if 'Confidence' in result and isinstance(result['Confidence'][id], torch.Tensor):
+            estConf = result['Confidence'][id].clone()
         if 'GroundTruth' in result and isinstance(result['GroundTruth'], torch.Tensor):
             gtDisp = result['GroundTruth'].clone()
-        if 'Disparity' in result and isinstance(result['Disparity'][0], torch.Tensor):
-            estDisp = result['Disparity'][0].clone()
+        if 'Disparity' in result and isinstance(result['Disparity'][id], torch.Tensor):
+            estDisp = result['Disparity'][id].clone()
 
         if all([torch.is_tensor(estConf), torch.is_tensor(gtDisp),
                 torch.is_tensor(estDisp), isinstance(cfg.sparsification_plot.bins, int)]):
@@ -124,7 +124,13 @@ def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
             save_result(result, cfg.out_dir, image_name)
 
         if hasattr(cfg, 'sparsification_plot'):
-            filter_result['Error'].update(sparsification_eval(result, cfg))
+            eval_disparity_id = cfg.get('eval_disparity_id', [0])
+            whole_error_dict = {}
+            for id in eval_disparity_id:
+                sparsification_plot_dict = sparsification_eval(result, cfg, id=id)
+                for key, val in sparsification_plot_dict.items():
+                    whole_error_dict['metric_confidence_{}/'.format(id) + key] = val
+            filter_result['Error'].update(whole_error_dict)
 
         results.append(filter_result)
 
@@ -282,9 +288,11 @@ def main():
             log_items = []
             for key, val in format_output_dict.items():
                 if isinstance(val, pd.DataFrame):
-                    log_items.append("\n {}:\n {} \n".format(key, val))
-                if isinstance(val, float):
+                    log_items.append("\n{}:\n{} \n".format(key, val))
+                elif isinstance(val, float):
                     val = "{:.4f}".format(val)
+                    log_items.append("{}: {}".format(key, val))
+                else:
                     log_items.append("{}: {}".format(key, val))
 
             if len(error_log_buffer.output) == 0:

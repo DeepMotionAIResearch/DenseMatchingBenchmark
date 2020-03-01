@@ -6,7 +6,7 @@ import os.path as osp
 
 # model settings
 max_disp = 192
-C = 1
+C = 8
 
 model = dict(
     meta_architecture="AnyNet",
@@ -14,7 +14,7 @@ model = dict(
     max_disp=max_disp,
     # the model whether or not to use BatchNorm
     batch_norm=True,
-    stage=['init_guess', 'warp_on_8', 'warp_on_4'],
+    stage=['init_guess', 'warp_level_8', 'warp_level_4'],
     backbone=dict(
         type="AnyNet",
         # the in planes of feature extraction backbone
@@ -33,20 +33,20 @@ model = dict(
             # the maximum disparity of disparity search range under the resolution of feature
             max_disp=dict(
                 init_guess=int(max_disp // 16),
-                warp_on_8=5,
-                warp_on_4=5,
+                warp_level_8=5,
+                warp_level_4=5,
             ),
             # the start disparity of disparity search range
             start_disp=dict(
                 init_guess=0,
-                warp_on_8=-2,
-                warp_on_4=-2,
+                warp_level_8=-2,
+                warp_level_4=-2,
             ),
             # the step between near disparity sample
             dilation=dict(
                 init_guess=1,
-                warp_on_8=1,
-                warp_on_4=1,
+                warp_level_8=1,
+                warp_level_4=1,
             ),
         ),
         cost_aggregator=dict(
@@ -54,14 +54,14 @@ model = dict(
             # the in planes of cost aggregation sub network
             in_planes=dict(
                 init_guess=8*C,
-                warp_on_8=4*C,
-                warp_on_4=2*C,
+                warp_level_8=4*C,
+                warp_level_4=2*C,
             ),
             # the channels of middle 3d convolution layer
             agg_planes=dict(
                 init_guess=16,
-                warp_on_8=4,
-                warp_on_4=4,
+                warp_level_8=4,
+                warp_level_4=4,
             ),
             # the number of middle 3d convolution layer
             num=4,
@@ -74,20 +74,20 @@ model = dict(
         # the maximum disparity of disparity search range
         max_disp=dict(
             init_guess=int(max_disp // 16),
-            warp_on_8=5,
-            warp_on_4=5,
+            warp_level_8=5,
+            warp_level_4=5,
         ),
         # the start disparity of disparity search range
         start_disp=dict(
             init_guess=0,
-            warp_on_8=-2,
-            warp_on_4=-2,
+            warp_level_8=-2,
+            warp_level_4=-2,
         ),
         # the step between near disparity sample
         dilation=dict(
             init_guess=1,
-            warp_on_8=1,
-            warp_on_4=1,
+            warp_level_8=1,
+            warp_level_4=1,
         ),
         # the temperature coefficient of soft argmin
         alpha=1.0,
@@ -175,10 +175,8 @@ data = dict(
     ),
     test=dict(
         type=dataset_type,
-        data_root=vis_data_root,
-        annfile=osp.join(vis_annfile_root, 'vis_test.json'),
-        # data_root=data_root,
-        # annfile=osp.join(annfile_root, 'cleanpass_test.json'),
+        data_root=data_root,
+        annfile=osp.join(annfile_root, 'cleanpass_test.json'),
         input_shape=[544, 960],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
@@ -194,11 +192,13 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[10]
+    step=[20]
 )
 checkpoint_config = dict(
-    interval=1
+    interval=2
 )
+# every n epoch evaluate
+validate_interval = 2
 
 log_config = dict(
     interval=10,
@@ -220,7 +220,7 @@ apex = dict(
     loss_scale=16,
 )
 
-total_epochs = 10
+total_epochs = 20
 
 # each model will return several disparity maps, but not all of them need to be evaluated
 # here, by giving indexes, the framework will evaluate the corresponding disparity map
@@ -233,8 +233,8 @@ validate = True
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AnyNet/scene_flow')
+work_dir = osp.join(root, 'exps/AnyNet/scene_flow_C8')
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_1.pth')
-out_dir = osp.join(work_dir, 'epoch_1')
+checkpoint = osp.join(work_dir, 'epoch_10.pth')
+out_dir = osp.join(work_dir, 'epoch_10')
