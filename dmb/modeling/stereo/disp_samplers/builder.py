@@ -1,7 +1,9 @@
 from .deep_prunner import DeepPrunerSampler
+from .mono_stereo import MonoStereoSampler
 
 SAMPLER = {
     "DEEPPRUNER": DeepPrunerSampler,
+    "MONOSTEREO": MonoStereoSampler,
 }
 
 

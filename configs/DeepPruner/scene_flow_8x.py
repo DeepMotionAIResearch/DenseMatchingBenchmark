@@ -84,10 +84,18 @@ model = dict(
             # the maximum disparity of disparity search range
             max_disp=max_disp,
             # weights for different scale loss
-            weights=(1.0, 1.0, 1.0, 1.0, 1.0),
+            weights=(1.6, 1.3, 1.0, 0.7, 0.7),
             # weight for l1 loss with regard to other loss type
             weight=1.0,
         ),
+        quantile_loss=dict(
+            # the maximum disparity of disparity search range
+            max_disp=max_disp,
+            # weight for quantile loss with regard to other loss type
+            weight=1.0,
+            # the balancing scalar
+            theta=0.05,
+        )
     ),
     eval=dict(
         # evaluate the disparity map within (lower_bound, upper_bound)
@@ -170,11 +178,14 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[10]
+    gamma=2/3,
+    step=[20, 40, 60, 64],
 )
 checkpoint_config = dict(
-    interval=1
+    interval=4
 )
+# every n epoch evaluate
+validate_interval = 4
 
 log_config = dict(
     interval=10,
@@ -196,7 +207,7 @@ apex = dict(
     loss_scale=16,
 )
 
-total_epochs = 10
+total_epochs = 64
 
 gpus = 4
 dist_params = dict(backend='nccl')
@@ -205,8 +216,8 @@ validate = True
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/PSMNet/scene_flow')
+work_dir = osp.join(root, 'exps/DeepPruner/scene_flow_8x')
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_10.pth')
-out_dir = osp.join(work_dir, 'epoch_10')
+checkpoint = osp.join(work_dir, 'epoch_64.pth')
+out_dir = osp.join(work_dir, 'epoch_64')

@@ -30,7 +30,7 @@ def build_transforms(cfg, type, is_train):
     return transform
 
 
-def build_dataset(cfg, type):
+def build_stereo_dataset(cfg, type):
     if type not in cfg.data:
         return None
 

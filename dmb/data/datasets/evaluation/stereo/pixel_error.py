@@ -37,13 +37,13 @@ def calc_error(est_disp=None, gt_disp=None, lb=None, ub=None):
     est_disp = est_disp.clone().cpu()
     gt_disp = gt_disp.clone().cpu()
 
-    mask = torch.ones(gt_disp.shape, dtype=torch.uint8)
+    mask = torch.ones(gt_disp.shape, dtype=torch.bool)
     if lb is not None:
         mask = mask & (gt_disp > lb)
     if ub is not None:
         mask = mask & (gt_disp < ub)
     mask.detach_()
-    if abs(mask.sum()) < 1.0:
+    if abs(mask.float().sum()) < 1.0:
         return {
             '1px': error1 * 100,
             '2px': error2 * 100,

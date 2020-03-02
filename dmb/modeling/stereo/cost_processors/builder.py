@@ -2,6 +2,7 @@ import torch.nn as nn
 
 from .utils.cat_fms import CAT_FUNCS
 from .utils.dif_fms import DIF_FUNCS
+from .utils.correlation1d_cost import COR_FUNCS
 from .aggregators import build_cost_aggregator
 
 from .deeppruner import DeepPrunerProcessor
@@ -62,9 +63,33 @@ class DifCostProcessor(CostProcessor):
         return costs
 
 
+# Use the correlation between left and right feature to form cost volume
+class CorCostProcessor(CostProcessor):
+
+    def __init__(self, cfg):
+        super(CorCostProcessor, self).__init__()
+        cor_func = cfg.model.cost_processor.cost_computation.get('type', 'default')
+        self.cor_func = COR_FUNCS[cor_func]
+
+        self.default_args = cfg.model.cost_processor.cost_computation.copy()
+        self.default_args.pop('type')
+
+        self.aggregator = build_cost_aggregator(cfg)
+
+    def forward(self, ref_fms, tgt_fms, disp_sample=None):
+        # 1. build raw cost by correlation
+        cor_cost = self.cor_func(ref_fms, tgt_fms, disp_sample=disp_sample, **self.default_args)
+
+        # 2. aggregate cost by 2D-hourglass
+        costs = self.aggregator(cor_cost)
+
+        return costs
+
+
 PROCESSORS = {
     'DIF': DifCostProcessor,
     'CAT': CatCostProcessor,
+    'COR': CorCostProcessor,
     'DEEPPRUNER': DeepPrunerProcessor,
     'ANYNET': AnyNetProcessor,
 }

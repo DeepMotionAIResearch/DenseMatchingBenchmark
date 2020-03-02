@@ -13,6 +13,7 @@ class InverseWarpLoss(object):
             theta (double): the threshold of identity difference for left-right consistency check
             eps (double): a small epsilon approximate to 0
             ssim_weight (double): the loss weight of SSIM
+            rms_wegiht (double): the loss weight of root mean square loss
         Inputs:
             estLeftDisp (Tensor or list of Tensor): estimated left disparity map,
                 in [BatchSize, 1, Height, Width] layout.
@@ -24,11 +25,12 @@ class InverseWarpLoss(object):
             weighted_loss_all_level (Tensor): the weighted loss of all levels.
     """
 
-    def __init__(self, weights=None, theta=1.0, eps=1e-6, ssim_weight=0.1):
+    def __init__(self, weights=None, theta=1.0, eps=1e-6, ssim_weight=0.15, rms_weight=0.85):
         self.weights = weights
         self.theta = theta
         self.eps = eps
         self.ssim_weight = ssim_weight
+        self.rms_weight=rms_weight
 
     def get_per_level_not_occlusion(self, estLeftDisp, estRightDisp):
         assert estLeftDisp.shape == estRightDisp.shape
@@ -61,12 +63,13 @@ class InverseWarpLoss(object):
 
         if mask is None:
             mask = torch.ones_like(leftImage > 0)
-        loss = self.rms(leftImage[mask], leftImage_fromWarp[mask])
+        loss = self.rms_weight * self.rms(leftImage[mask], leftImage_fromWarp[mask])
         loss += self.ssim_weight * SSIM(leftImage, leftImage_fromWarp, mask)
 
         return loss
 
     def lr_loss_per_level(self, leftEstDisp, rightEstDisp, leftImage, rightImage, leftMask=None, rightMask=None):
+        from dmb.modeling.stereo.losses.utils import SSIM
         assert leftEstDisp.shape == rightEstDisp.shape, \
             'The shape of left and right disparity map should be the same!'
         N, C, H, W = leftEstDisp.shape
@@ -78,12 +81,12 @@ class InverseWarpLoss(object):
 
         if leftMask is None:
             leftMask = torch.ones_like(leftImage > 0)
-        loss = self.rms(leftImage[leftMask], leftImage_fromWarp[leftMask])
+        loss = self.rms_weight * self.rms(leftImage[leftMask], leftImage_fromWarp[leftMask])
         loss += self.ssim_weight * SSIM(leftImage, leftImage_fromWarp, leftMask)
 
         if rightMask is None:
             rightMask = torch.ones_like(rightImage > 0)
-        loss += self.rms(rightImage[rightMask], rightImage_fromWarp[rightMask])
+        loss += self.rms_weight * self.rms(rightImage[rightMask], rightImage_fromWarp[rightMask])
         loss += self.ssim_weight * SSIM(rightImage, rightImage_fromWarp, leftMask)
 
         return loss

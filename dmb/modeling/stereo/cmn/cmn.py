@@ -11,7 +11,7 @@ class ConfHead(nn.Module):
     """
     Args:
         in_planes (int): usually cost volume used to calculate confidence map with $in_planes$ in Channel Dimension
-        batchNorm, (bool): whether use batch normalization layer, default True
+        batch_norm, (bool): whether use batch normalization layer, default True
     Inputs:
         cost, (tensor): cost volume in (BatchSize, in_planes, Height, Width) layout
     Outputs:
@@ -54,7 +54,7 @@ class Cmn(nn.Module):
         self.conf_heads = conf_heads
         self.loss_evaluator = loss_evaluator
 
-    def forward(self, costs, target=None):
+    def get_confidence(self, costs):
         assert len(self.conf_heads) == len(costs), "NUM of confidence heads({}) must be equal to NUM" \
                                                    "of cost volumes({})".format(len(self.conf_heads), len(costs))
 
@@ -66,16 +66,25 @@ class Cmn(nn.Module):
         # calculate variance modulated by confidence
         cost_vars = [self.alpha * (1 - conf) + self.beta for conf in confs]
 
-        if self.training:
-            cm_losses = self.loss_evaluator(confs, target)
+        return confs, cost_vars, conf_costs
 
+    def get_loss(self, confs, target=None):
+        cm_losses = self.loss_evaluator(confs, target)
+
+        return cm_losses
+
+    def forward(self, costs, target=None):
+        confs, cost_vars, conf_costs = self.get_confidence(costs)
+
+        if self.training:
+            cm_losses = self.get_loss(confs, target)
             return cost_vars, cm_losses
         else:
             return cost_vars, confs
 
 
 def build_cmn(cfg):
-    in_planes = cfg.model.max_disp
+    in_planes = cfg.model.cmn.in_planes
     num = cfg.model.cmn.num
     alpha = cfg.model.cmn.alpha
     beta = cfg.model.cmn.beta

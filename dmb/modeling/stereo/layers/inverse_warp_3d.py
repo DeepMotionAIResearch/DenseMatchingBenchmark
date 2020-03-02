@@ -1,12 +1,13 @@
 import torch
 import torch.nn.functional as F
 
-def inverse_warp_3d(img, disp, padding_mode='zeros'):
+def inverse_warp_3d(img, disp, padding_mode='zeros', disp_Y=None):
     """
     Args:
         img (Tensor): the source image (where to sample pixels) -- [B, C, H, W] or [B, C, D, H, W]
         disp (Tensor): disparity map of the target image -- [B, D, H, W]
         padding_mode (str): padding mode, default is zero padding
+        disp_Y (Tensor): disparity map of the target image along Y-axis -- [B, D, H, W]
     Returns:
         projected_img (Tensor): source image warped to the target image -- [B, C, D, H, W]
     """
@@ -15,6 +16,8 @@ def inverse_warp_3d(img, disp, padding_mode='zeros'):
     B, D, H, W = disp.shape
     C = img.shape[1]
 
+    if disp_Y is not None:
+        assert disp.shape == disp_Y.shape, 'disparity map along x and y axis should have same shape!'
     if img.dim() == 4:
         img = img.unsqueeze(2).expand(B, C, D, H, W)
     elif img.dim() == 5:
@@ -30,6 +33,8 @@ def inverse_warp_3d(img, disp, padding_mode='zeros'):
 
     # shift the index of W dimension with disparity
     grid_w = grid_w + disp
+    if disp_Y is not None:
+        grid_h = grid_h + disp_Y
 
     # normalize the grid value into [-1, 1]; (0, D-1), (0, H-1), (0, W-1)
     grid_d = (grid_d / (D - 1) * 2) - 1

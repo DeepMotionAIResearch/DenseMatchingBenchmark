@@ -1,11 +1,13 @@
 from .stereonet import StereoNetRefinement
 from .deeppruner import DeepPrunerRefinement
 from .anynet import AnyNetRefinement
+from .monostereo import MonoStereoRefinement
 
 REFINEMENTS = {
     "STEREONET": StereoNetRefinement,
     "DEEPPRUNER": DeepPrunerRefinement,
     "ANYNET": AnyNetRefinement,
+    "MONOSTEREO": MonoStereoRefinement,
 }
 
 

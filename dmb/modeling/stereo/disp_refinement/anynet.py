@@ -89,7 +89,11 @@ class AnyNetRefinement(nn.Module):
         # [B, 1, H, W]
         refine_disp = F.relu(res_disp + init_disp)
 
-        return [refine_disp]
+        disps.append(refine_disp)
+        # In this framework, we always keep the better disparity map be ahead the worse.
+        disps.reverse()
+
+        return disps
 
 
 

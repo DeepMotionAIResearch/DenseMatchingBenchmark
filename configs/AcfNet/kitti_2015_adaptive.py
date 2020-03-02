@@ -39,6 +39,8 @@ model = dict(
         alpha=1.0,
         # the lower bound of variance of distribution
         beta=1.0,
+        # the in planes of confidence measure network
+        in_planes=max_disp,
         losses=dict(
             nll_loss=dict(
                 # the maximum disparity of disparity search range
@@ -210,11 +212,11 @@ gpus = 4
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
-load_from = osp.join(root, 'exps/AcfNet/scene_flow_adaptive_c20/epoch_20.pth')
+load_from = osp.join(root, 'exps/AcfNet/scene_flow_adaptive/epoch_20.pth')
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AcfNet/kitti_2015_adaptive_c20')
+work_dir = osp.join(root, 'exps/AcfNet/kitti_2015_adaptive')
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_600.pth')

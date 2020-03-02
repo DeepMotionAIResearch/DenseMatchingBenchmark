@@ -1,31 +1,29 @@
 import os
 import os.path as osp
 import warnings
+from collections import abc as container_abcs
 
 import numpy as np
 from imageio import imread
-import skimage
-import skimage.io
-import skimage.transform
-import matplotlib.pyplot as plt
 
 import torch
+import torch.nn.functional as F
 
 import mmcv
 from mmcv import mkdir_or_exist
 from mmcv.runner import load_checkpoint
 
-import dmb.data.transforms as T
-from dmb.modeling.stereo import build_stereo_model as build_model
+from dmb.data.transforms import stereo_trans as T
+from dmb.data.transforms.transforms import Compose
+from dmb.modeling import build_model
 from dmb.data.datasets.utils import load_scene_flow_disp
-from dmb.visualization.stereo import ShowResultTool
+from dmb.data.datasets.evaluation.stereo.eval import remove_padding
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
     '.png', '.PNG', '.ppm', '.PPM', '.bmp', '.BMP',
 ]
 
-#TODO: To be completed
 
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
@@ -35,16 +33,29 @@ def is_pfm_file(filename):
     return filename.endswith('.pfm')
 
 
-def load_disp(item, filename):
+def load_disp(item, filename, disp_div_factor=1.0):
+    Disp = None
     if filename in item.keys() and item[filename] is not None:
         if is_image_file(item[filename]):
-            Disp = imread(item[filename]).astype(np.float32)
+            Disp = imread(item[filename]).astype(np.float32).astype(np.float32) / disp_div_factor
         elif is_pfm_file(item[filename]):
-            Disp = load_scene_flow_disp(item[filename])
-    else:
-        Disp = None
+            Disp = load_scene_flow_disp(item[filename]).astype(np.float32) / disp_div_factor
+        else:
+            raise NotImplementedError
 
     return Disp
+
+
+def to_cpu(tensor):
+    error_msg = "Tensor must contain tensors, dicts or lists; found {}"
+    if isinstance(tensor, torch.Tensor):
+        return tensor.detach().cpu()
+    elif isinstance(tensor, container_abcs.Mapping):
+        return {key: to_cpu(tensor[key]) for key in tensor}
+    elif isinstance(tensor, container_abcs.Sequence):
+        return [to_cpu(samples) for samples in tensor]
+
+    raise TypeError((error_msg.format(type(tensor))))
 
 
 def init_model(config, checkpoint=None, device='cuda:0'):
@@ -78,12 +89,28 @@ def inference_stereo(model,
                      log_dir,
                      pad_to_shape=None,
                      crop_shape=None,
-                     scale_factor=None,
-                     disp_scale=1.0):
+                     scale_factor=1.0,
+                     disp_div_factor=1.0,
+                     device='cuda:0'):
     """Inference image(s) with the stereo model.
     Args:
-        model (nn.Module): The loaded detector.
-        batchesDict:
+        model (nn.Module): The loaded model.
+        batchesDict (list of dict): a dict must contain: left_image_path, right_image_path;
+                                   optional contain: left_disp_map_path, right_disp_map_path
+        log_dir (str): result saving root directory
+        pad_to_shape (tuple): the shape of image after pad -- (H, W)
+        crop_shape (tuple): the shape of image after crop -- (H, W)
+        scale_factor (int, float): the down sample or up sample scale of images
+        disp_div_factor (int, float): if disparity map given, after reading the disparity map,
+                    often have to divide a scale to get the real disparity value, e.g. 256 in KITTI
+    Notes:
+        Given left and right image path,
+        1st: read images
+        2nd: pad or crop images to a given shape
+        3rd: down sample or up sample the images to the given shape
+        4th: model inference
+        5th: inversely down sample or up sample result
+        finally: if pad, retrieve to original shape; otherwise, nothing will be done
     Returns:
         If imgs is a str, a generator will be returned, otherwise return the
         detection results directly.
@@ -93,17 +120,23 @@ def inference_stereo(model,
     img_transform = []
     img_transform.append(T.ToTensor())
     if pad_to_shape is not None:
+        assert crop_shape is None
         img_transform.append(T.StereoPad(pad_to_shape))
     if crop_shape is not None:
+        assert pad_to_shape is None
         img_transform.append(T.CenterCrop(crop_shape))
     img_transform.append(T.Normalize(mean, std))
-    img_transform = T.Compose(img_transform)
+    img_transform = Compose(img_transform)
 
-    model.cfg.log_dir = log_dir
-    model.cfg.pad_to_shape = pad_to_shape
-    model.cfg.crop_shape = crop_shape
-    model.scale_factor = scale_factor
-    model.cfg.disp_scale = disp_scale
+    model.cfg.update(
+        {
+            'log_dir': log_dir,
+            'pad_to_shape': pad_to_shape,
+            'crop_shape': crop_shape,
+            'scale_factor': scale_factor,
+            'disp_div_factor': disp_div_factor
+        }
+    )
 
     device = next(model.parameters()).device  # model device
     for batchDict in batchesDict:
@@ -111,91 +144,83 @@ def inference_stereo(model,
 
 
 def _prepare_data(item, img_transform, cfg, device):
-    origLeftImage = imread(item['left_image_path']).astype(np.float32)[:3]
-    origRightImage = imread(item['right_image_path']).astype(np.float32)[:3]
-    origLeftDisp = load_disp(item, 'left_disp_map_path') / cfg.disp_scale
-    origRightDisp = load_disp(item, 'right_disp_map_path') / cfg.disp_scale
+    oriLeftImage = imread(item['left_image_path'])[:, :, :3].astype(np.float32)
+    oriRightImage = imread(item['right_image_path'])[:, :, :3].astype(np.float32)
+    oriLeftDisp = load_disp(item, 'left_disp_map_path', cfg.disp_div_factor)
+    oriRightDisp = load_disp(item, 'right_disp_map_path', cfg.disp_div_factor)
 
-    origSample = {'leftImage': origLeftImage,
-                  'rightImage': origRightImage,
-                  'leftDisp': origLeftDisp,
-                  'rightDisp': origRightDisp}
+    oriSample = {'leftImage': oriLeftImage,
+                 'rightImage': oriRightImage,
+                 'leftDisp': oriLeftDisp,
+                 'rightDisp': oriRightDisp}
 
-    if cfg.crop_shape is not None:
-        origSample = T.CenterCrop(cfg.crop_shape)(origSample)
-
-    leftImage = origSample['leftImage'].copy().transpose(2, 0, 1)
-    rightImage = origSample['rightImage'].copy().transpose(2, 0, 1)
-    leftDisp = origSample['leftDisp'].copy()[np.newaxis, ...]
-    rightDisp = origSample['rightDisp'].copy()[np.newaxis, ...]
-
-    processSample = {'leftImage': leftImage,
-                     'rightImage': rightImage,
-                     'leftDisp': leftDisp,
-                     'rightDisp': rightDisp}
+    leftImage = oriLeftImage.copy().transpose(2, 0, 1)
+    rightImage = oriRightImage.copy().transpose(2, 0, 1)
+    leftDisp = None
+    rightDisp = None
+    if oriLeftDisp is not None:
+        leftDisp = oriLeftDisp.copy()[np.newaxis, ...]
+    if oriRightDisp is not None:
+        rightDisp = oriRightDisp.copy()[np.newaxis, ...]
 
     h, w = leftImage.shape[1], leftImage.shape[2]
     original_size = (h, w)
 
-    return {
-        'leftImage': leftImage,
-        'rightImage': rightImage,
-        'leftDisp': leftDisp,
-        'rightDisp': rightDisp,
-        'original_size': original_size,
-    }
+    procSample = {'leftImage': leftImage,
+                  'rightImage': rightImage,
+                  'leftDisp': leftDisp,
+                  'rightDisp': rightDisp,
+                  'original_size': original_size,
+                  }
 
-    ori_shape = img.shape
-    img, img_shape, pad_shape, scale_factor = img_transform(
-        img,
-        scale=cfg.data.test.img_scale,
-        keep_ratio=cfg.data.test.get('resize_keep_ratio', True))
-    img = to_tensor(img).to(device).unsqueeze(0)
-    img_meta = [
-        dict(
-            ori_shape=ori_shape,
-            img_shape=img_shape,
-            pad_shape=pad_shape,
-            scale_factor=scale_factor,
-            flip=False)
-    ]
-    return dict(img=[img], img_meta=[img_meta])
+    procSample = img_transform(procSample)
+
+    scale_factor = cfg.scale_factor
+    for k, v in procSample.items():
+        if torch.is_tensor(v):
+            v = v.unsqueeze(0)
+            if 'Disp' in k:
+                v = F.interpolate(v*scale_factor, scale_factor=scale_factor, mode='bilinear', align_corners=False)
+            else:
+                v = F.interpolate(v, scale_factor=scale_factor, mode='bilinear', align_corners=False)
+            procSample[k] = v.to(device)
+
+    return procSample, oriSample
 
 
 def _inference_single(model, batchDict, img_transform, device):
-    data = _prepare_data(batchDict, img_transform, model.cfg, device)
+    cfg = model.cfg.copy()
+    procData, oriData = _prepare_data(batchDict, img_transform, cfg, device)
     with torch.no_grad():
-        result = model(data)
-    return result
+        result, _ = model(procData)
+    result = to_cpu(result)
 
+    assert isinstance(result, dict)
 
-def _inference_generator(model, imgPairs, img_transform, device):
-    for imgPair in imgPairs:
-        yield _inference_single(model, imgPair, img_transform, device)
+    for k, v in result.items():
+        assert isinstance(v, (tuple, list))
+        for i in range(len(v)):
+            vv = v[i]
+            if torch.is_tensor(vv):
+                # inverse up/down sample
+                vv = F.interpolate(vv*1.0/cfg.scale_factor, scale_factor=1.0/cfg.scale_factor, mode='bilinear', align_corners=False)
+                ori_size = procData['original_size']
+                if cfg.pad_to_shape is not None:
+                    vv = remove_padding(vv, ori_size)
+                v[i] = vv
+        result[k] = v
 
+    logData = {
+        'Result': result,
+        'OriginalData': oriData,
+    }
 
-def save_result(result, out_dir, image_name):
-    result_tool = ShowResultTool()
-    result = result_tool(result, color_map='gray', bins=100)
+    save_root = osp.join(cfg.log_dir, batchDict['left_image_path'].split('/')[-1].split('.')[0])
+    mkdir_or_exist(save_root)
+    save_path = osp.join(save_root, 'result.pkl')
+    print('Result of {} will be saved to {}!'.format(batchDict['left_image_path'].split('/')[-1], save_path))
 
-    if 'GrayDisparity' in result.keys():
-        grayEstDisp = result['GrayDisparity']
-        gray_save_path = osp.join(out_dir, 'disp_0')
-        mkdir_or_exist(gray_save_path)
-        skimage.io.imsave(osp.join(gray_save_path, image_name), (grayEstDisp * 256).astype('uint16'))
+    mmcv.dump(logData, save_path)
 
-    if 'ColorDisparity' in result.keys():
-        colorEstDisp = result['ColorDisparity']
-        color_save_path = osp.join(out_dir, 'color_disp')
-        mkdir_or_exist(color_save_path)
-        plt.imsave(osp.join(color_save_path, image_name), colorEstDisp, cmap=plt.cm.hot)
+    return logData
 
-    if 'GroupColor' in result.keys():
-        group_save_path = os.path.join(out_dir, 'group_disp')
-        mkdir_or_exist(group_save_path)
-        plt.imsave(osp.join(group_save_path, image_name), result['GroupColor'], cmap=plt.cm.hot)
-
-    if 'ColorConfidence' in result.keys():
-        conf_save_path = os.path.join(out_dir, 'confidence')
-        mkdir_or_exist(conf_save_path)
-        plt.imsave(osp.join(conf_save_path, image_name), result['ColorConfidence'])

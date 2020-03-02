@@ -8,6 +8,7 @@ import pandas as pd
 import sys
 sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
 
+
 import numpy as np
 from imageio import imread
 
@@ -23,15 +24,15 @@ from mmcv.parallel import scatter, collate
 
 from dmb.utils.collect_env import collect_env_info
 from dmb.utils.env import init_dist, get_root_logger
-from dmb.modeling.stereo import build_stereo_model as build_model
-from dmb.data.datasets.stereo import build_dataset
-from dmb.apis.inference import save_result
-from dmb.data.datasets.evaluation.stereo.eval import remove_padding
-from dmb.data.datasets.evaluation.stereo.eval_hooks import disp_evaluation, output_evaluation_in_pandas
+from dmb.modeling import build_model
+from dmb.data.datasets import build_dataset
+from dmb.data.datasets.evaluation import output_evaluation_in_pandas
 from dmb.visualization.stereo import sparsification_plot
+from dmb.visualization import SaveResultTool
 
 
 def sparsification_eval(result, cfg, id=0):
+    estDisp, estConf, gtDisp = None, None, None
     if hasattr(cfg, 'sparsification_plot') and cfg.sparsification_plot.doing:
         if 'Confidence' in result and isinstance(result['Confidence'][id], torch.Tensor):
             estConf = result['Confidence'][id].clone()
@@ -47,6 +48,47 @@ def sparsification_eval(result, cfg, id=0):
                 cfg.model.eval.lower_bound, cfg.model.eval.upper_bound)
 
             return error_dict
+
+
+def disp_(cfg, ori_result, data):
+    from dmb.data.datasets.evaluation.stereo.eval import remove_padding
+    from dmb.data.datasets.evaluation.stereo.eval_hooks import disp_evaluation
+
+    disps = ori_result['disps']
+
+    # evaluation
+    whole_error_dict, data = disp_evaluation(cfg.copy(), disps, data)
+
+    result = {
+        'Disparity': disps,
+        'GroundTruth': data['leftDisp'],
+        'Error': whole_error_dict,
+    }
+
+    if hasattr(cfg.model, 'cmn'):
+        # confidence measurement network
+        ori_size = data['original_size']
+        confs = ori_result['confs']
+        confs = remove_padding(confs, ori_size)
+        result.update(Confidence=confs)
+
+    return result
+
+
+def flow_(cfg, ori_result, data):
+    from dmb.data.datasets.evaluation.flow.eval_hooks import flow_evaluation
+    flows = ori_result['flows']
+
+    # evaluation
+    whole_error_dict, data = flow_evaluation(cfg.copy(), flows, data)
+
+    result = {
+        'Flow': flows,
+        'GroundTruth': data['flow'],
+        'Error': whole_error_dict,
+    }
+
+    return result
 
 
 def single_gpu_test(model, dataset, cfg, show=False):
@@ -79,35 +121,13 @@ def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
         with torch.no_grad():
             ori_result, _ = model(data)
 
-            # remove the padding when data augmentation
-            disps = ori_result['disps']
-
-            ori_size = data['original_size']
-            disps = remove_padding(disps, ori_size)
-
-            # process the ground truth disparity map
-            data['leftDisp'] = data['leftDisp'] if 'leftDisp' in data else None
-            if data['leftDisp'] is not None:
-                data['leftDisp'] = remove_padding(data['leftDisp'], ori_size)
-            data['rightDisp'] = data['rightDisp'] if 'rightDisp' in data else None
-            if data['rightDisp'] is not None:
-                data['rightDisp'] = remove_padding(data['rightDisp'], ori_size)
-
-            # evaluation
-            whole_error_dict = disp_evaluation(cfg.copy(), disps, data['leftDisp'], data['rightDisp'])
-
-            result = {
-                'Disparity': disps,
-                'GroundTruth': data['leftDisp'],
-                'Error': whole_error_dict,
-            }
-
-            if hasattr(cfg.model, 'cmn'):
-                # confidence measurement network
-                confs = ori_result['confs']
-                confs = remove_padding(confs, ori_size)
-                result.update(Confidence=confs)
-
+            task = cfg.get('task', 'stereo')
+            if task == 'stereo':
+                result = disp_(cfg.copy(), ori_result, data)
+            elif task == 'flow':
+                result = flow_(cfg.copy(), ori_result, data)
+            else:
+                raise TypeError('Invalid task: {}. It must be in [stereo, flow]'.format(task))
 
         filter_result = {}
         filter_result.update(Error=result['Error'])
@@ -121,7 +141,8 @@ def multi_gpu_test(model, dataset, cfg, show=False, tmpdir=None):
                 osp.join(cfg.data.test.data_root, item['right_image_path'])
             ).astype(np.float32)
             image_name = item['left_image_path'].split('/')[-1]
-            save_result(result, cfg.out_dir, image_name)
+            save_result_tool = SaveResultTool(task)
+            save_result_tool(result, cfg.out_dir, image_name)
 
         if hasattr(cfg, 'sparsification_plot'):
             eval_disparity_id = cfg.get('eval_disparity_id', [0])
@@ -202,13 +223,13 @@ def parse_args():
     parser.add_argument('--local_rank', type=int, default=0)
 
     # TODO del
-    parser.add_argument('--out_path', default='',
+    parser.add_argument('--out_path',
                         help='needed by job client')
-    parser.add_argument('--in_path', default='',
+    parser.add_argument('--in_path',
                         help='needed by job client')
-    parser.add_argument('--pretrained_path', default='', help='needed by job client')
-    parser.add_argument('--job_name', default='', help='needed by job client')
-    parser.add_argument('--job_id', default='', help='needed by job client')
+    parser.add_argument('--pretrained_path', help='needed by job client')
+    parser.add_argument('--job_name', help='needed by job client')
+    parser.add_argument('--job_id', help='needed by job client')
 
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
@@ -282,8 +303,9 @@ def main():
                 error_log_buffer.update(result['Error'])
             error_log_buffer.average()
 
+            task = cfg.get('task', 'stereo')
             # for better visualization, format into pandas
-            format_output_dict = output_evaluation_in_pandas(error_log_buffer.output)
+            format_output_dict = output_evaluation_in_pandas(error_log_buffer.output, task)
 
             log_items = []
             for key, val in format_output_dict.items():
@@ -302,10 +324,6 @@ def main():
             log_str += ", ".join(log_items)
             logger.info(log_str)
             error_log_buffer.clear()
-
-
-
-
 
 
 if __name__ == '__main__':

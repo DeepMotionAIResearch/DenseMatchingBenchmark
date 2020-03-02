@@ -8,6 +8,9 @@ import torchvision.transforms.functional as F
 
 
 class ToTensor(object):
+    """
+    convert numpy.ndarray to torch.floatTensor, in [Channels, Height, Width]
+    """
     def __call__(self, sample):
         for k in sample.keys():
             if sample[k] is not None and isinstance(sample[k], np.ndarray):

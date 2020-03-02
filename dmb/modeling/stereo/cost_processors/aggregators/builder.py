@@ -1,17 +1,20 @@
 from .gc import GCAggregator
 from .psm import PSMAggregator
-from .acf import AcfAggregator
+from .acf import AcfAggregator, Acf2DAggregator
 from .stereonet import StereoNetAggregator
 from .deeppruner import DeepPrunerAggregator
 from .anynet import AnyNetAggregator
+from .monostereo import MonoStereoAggregator
 
 AGGREGATORS = {
     "GC": GCAggregator,
     "PSM": PSMAggregator,
     "ACF": AcfAggregator,
+    "ACF2D": Acf2DAggregator,
     'STEREONET': StereoNetAggregator,
     'DEEPPRUNER': DeepPrunerAggregator,
     'ANYNET': AnyNetAggregator,
+    'MONOSTEREO': MonoStereoAggregator,
 }
 
 

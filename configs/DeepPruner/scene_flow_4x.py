@@ -205,6 +205,10 @@ apex = dict(
 
 total_epochs = 64
 
+# each model will return several disparity maps, but not all of them need to be evaluated
+# here, by giving indexes, the framework will evaluate the corresponding disparity map
+eval_disparity_id = [0, 1, 2]
+
 gpus = 4
 dist_params = dict(backend='nccl')
 log_level = 'INFO'

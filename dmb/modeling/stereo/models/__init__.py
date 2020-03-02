@@ -1,11 +1,13 @@
 from .general_stereo_model import GeneralizedStereoModel
 from .DeepPruner import DeepPruner
 from .AnyNet import AnyNet
+from .MonoStereo import MonoStereo
 
 _META_ARCHITECTURES = {
     "GeneralizedStereoModel": GeneralizedStereoModel,
     "DeepPruner": DeepPruner,
     "AnyNet": AnyNet,
+    "MonoStereo": MonoStereo,
 }
 
 

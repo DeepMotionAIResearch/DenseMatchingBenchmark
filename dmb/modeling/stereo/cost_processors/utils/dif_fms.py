@@ -4,7 +4,8 @@ import torch.nn.functional as F
 from dmb.modeling.stereo.layers.inverse_warp_3d import inverse_warp_3d
 
 
-def dif_fms(reference_fm, target_fm, max_disp=192, start_disp=0, dilation=1, disp_sample=None):
+def dif_fms(reference_fm, target_fm, max_disp=192, start_disp=0, dilation=1, disp_sample=None,
+            normalize=False, p=1.0):
     """
     Concat left and right in Channel dimension to form the raw cost volume.
     Args:
@@ -45,7 +46,8 @@ def dif_fms(reference_fm, target_fm, max_disp=192, start_disp=0, dilation=1, dis
     return dif_fm
 
 
-def fast_dif_fms(reference_fm, target_fm, max_disp=192, start_disp=0, dilation=1, disp_sample=None):
+def fast_dif_fms(reference_fm, target_fm, max_disp=192, start_disp=0, dilation=1, disp_sample=None,
+                 normalize=False, p=1.0,):
     device = reference_fm.device
     B, C, H, W = reference_fm.shape
 
@@ -76,6 +78,10 @@ def fast_dif_fms(reference_fm, target_fm, max_disp=192, start_disp=0, dilation=1
 
     # [B, C, D, H, W)
     dif_fm = dif_reference_fm - dif_target_fm
+
+    if normalize:
+        # [B, D, H, W]
+        dif_fm = torch.norm(dif_fm, p=p, dim=1, keepdim=False)
 
     return dif_fm
 

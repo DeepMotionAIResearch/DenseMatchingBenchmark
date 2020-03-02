@@ -25,7 +25,8 @@ def remove_padding(batch, size):
         # For stereo, we often pad top and right of the image
         pad_top = batch.shape[-2] - size[-2]
         # pad_right = batch.shape[-1] - size[-1]
-        batch = batch[:, :, pad_top:, :size[-1]]
+        if pad_top >= 0:
+            batch = batch[:, :, pad_top:, :size[-1]]
 
         return batch
     elif isinstance(batch, container_abcs.Mapping):

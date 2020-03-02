@@ -33,14 +33,14 @@ model = dict(
             # the maximum disparity of disparity search range under the resolution of feature
             max_disp=dict(
                 init_guess=int(max_disp // 16),
-                warp_level_8=5,
-                warp_level_4=5,
+                warp_level_8=9,
+                warp_level_4=9,
             ),
             # the start disparity of disparity search range
             start_disp=dict(
                 init_guess=0,
-                warp_level_8=-2,
-                warp_level_4=-2,
+                warp_level_8=-4,
+                warp_level_4=-4,
             ),
             # the step between near disparity sample
             dilation=dict(
@@ -74,14 +74,14 @@ model = dict(
         # the maximum disparity of disparity search range
         max_disp=dict(
             init_guess=int(max_disp // 16),
-            warp_level_8=5,
-            warp_level_4=5,
+            warp_level_8=9,
+            warp_level_4=9,
         ),
         # the start disparity of disparity search range
         start_disp=dict(
             init_guess=0,
-            warp_level_8=-2,
-            warp_level_4=-2,
+            warp_level_8=-4,
+            warp_level_4=-4,
         ),
         # the step between near disparity sample
         dilation=dict(
@@ -226,14 +226,14 @@ total_epochs = 20
 # here, by giving indexes, the framework will evaluate the corresponding disparity map
 eval_disparity_id = [0, 1, 2, 3]
 
-gpus = 4
+gpus = 1
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AnyNet/scene_flow_C8')
+work_dir = osp.join(root, 'exps/AnyNet/scene_flow_C8Warp9')
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_10.pth')

@@ -195,7 +195,7 @@ def group_color(est_disp, gt_disp=None, left_image=None, right_image=None, save_
     """
     Combine the Left Image, Disparity Estimation, Disparity Ground-Truth, Disparity Error into one column
     Args:
-        est_disp (numpy.array): estiamted disparity map
+        est_disp (numpy.array): estimated disparity map
             in (Height, Width) layout, values range between [0, 255]
         gt_disp (numpy.array): disparity ground-truth map
             in (Height, Width) layout, values range between [0, 255]

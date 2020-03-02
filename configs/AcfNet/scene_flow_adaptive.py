@@ -39,6 +39,8 @@ model = dict(
         alpha=1.0,
         # the lower bound of variance of distribution
         beta=1.0,
+        # the in planes of confidence measure network
+        in_planes=max_disp,
         losses=dict(
             nll_loss=dict(
                 # the maximum disparity of disparity search range
@@ -46,7 +48,7 @@ model = dict(
                 # the start disparity of disparity search range
                 start_disp=0,
                 # weight for confidence loss with regard to other loss type
-                weight=12.0,
+                weight=24.0,
                 # weights for different scale loss
                 weights=(1.0, 0.7, 0.5),
             ),
@@ -54,17 +56,13 @@ model = dict(
     ),
     disp_predictor=dict(
         # default FasterSoftArgmin
-        type="FASTER",  # "LOCAL",  #
+        type="FASTER",
         # the maximum disparity of disparity search range
         max_disp=max_disp,
-        # the radius of window when local sampling
-        # radius=3,
         # the start disparity of disparity search range
         start_disp=0,
         # the step between near disparity sample
         dilation=1,
-        # the step between near disparity index when local sampling
-        # radius_dilation=1,
         # the temperature coefficient of soft argmin
         alpha=1.0,
         # whether normalize the estimated cost volume
@@ -130,7 +128,7 @@ data = dict(
     # if disparity of datasets is sparse, default dataset is SceneFLow
     sparse=False,
     imgs_per_gpu=1,
-    workers_per_gpu=16,
+    workers_per_gpu=4,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -138,7 +136,6 @@ data = dict(
         input_shape=[256, 512],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
-        use_right_disp=False,
     ),
     eval=dict(
         type=dataset_type,
@@ -147,7 +144,6 @@ data = dict(
         input_shape=[544, 960],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
-        use_right_disp=False,
     ),
     # If you don't want to visualize the results, just uncomment the vis data
     vis=dict(
@@ -165,7 +161,6 @@ data = dict(
         input_shape=[544, 960],
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
-        use_right_disp=False,
     ),
 )
 
@@ -210,7 +205,7 @@ load_from = None
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AcfNet/scene_flow_adaptive_c12')
+work_dir = osp.join(root, 'exps/AcfNet/scene_flow_adaptive')
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_10.pth')

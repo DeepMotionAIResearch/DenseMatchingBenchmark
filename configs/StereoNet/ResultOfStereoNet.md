@@ -1,4 +1,6 @@
-##Model Info
+# Result of StereoNet
+
+## Model Info
 
 * Note: Test on GTX1080Ti, with resolution 384x1248.
 
@@ -9,7 +11,7 @@
 
 
 
-##Experiment
+## Experiment
 
 
 **hints**
