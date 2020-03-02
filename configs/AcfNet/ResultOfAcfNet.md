@@ -1,3 +1,4 @@
+
 ##Model Info
 
 * Note: Test on GTX1080Ti, with resolution 384x1248.
@@ -6,7 +7,6 @@
 |:---------------------:|:---------:|:----------:|:----:|:--------:|
 |  AcfNet(uniform)      | 1080.0G   |  5.227M    | 1.66 |  600.8   |
 |  AcfNet(adaptive)     | 1239.0G   |  5.559M    | 1.38 |  723.1   |
-
 
 
 ##Experiment

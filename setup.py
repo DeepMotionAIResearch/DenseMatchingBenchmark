@@ -8,3 +8,4 @@ setup(
     description="dense matching benchmark in pytorch",
     packages=find_packages(exclude=("tests")),
 )
+
