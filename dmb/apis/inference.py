@@ -25,7 +25,6 @@ IMG_EXTENSIONS = [
     '.png', '.PNG', '.ppm', '.PPM', '.bmp', '.BMP',
 ]
 
-#TODO: To be completed
 
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
@@ -35,14 +34,13 @@ def is_pfm_file(filename):
     return filename.endswith('.pfm')
 
 
-def load_disp(item, filename):
+def load_disp(item, filename, disp_div_factor=1.0):
+    Disp = None
     if filename in item.keys() and item[filename] is not None:
         if is_image_file(item[filename]):
-            Disp = imread(item[filename]).astype(np.float32)
+            Disp = imread(item[filename]).astype(np.float32) / disp_div_factor
         elif is_pfm_file(item[filename]):
-            Disp = load_scene_flow_disp(item[filename])
-    else:
-        Disp = None
+            Disp = load_scene_flow_disp(item[filename]) / disp_div_factor
 
     return Disp
 
@@ -78,12 +76,27 @@ def inference_stereo(model,
                      log_dir,
                      pad_to_shape=None,
                      crop_shape=None,
-                     scale_factor=None,
-                     disp_scale=1.0):
+                     scale_factor=1.0,
+                     disp_div_factor=1.0):
     """Inference image(s) with the stereo model.
     Args:
-        model (nn.Module): The loaded detector.
-        batchesDict:
+        model (nn.Module): The loaded model.
+        batchesDict (dict): a dict must contain: left_image_path, right_image_path;
+                                   optional contain: left_disp_map_path, right_disp_map_path
+        log_dir (str): result saving root directory
+        pad_to_shape (tuple): the shape of image after pad -- (H, W)
+        crop_shape (tuple): the shape of image after crop -- (H, W)
+        scale_factor (int, float): the down sample or up sample scale of images
+        disp_div_factor (int, float): if disparity map given, after reading the disparity map,
+                    often have to divide a scale to get the real disparity value, e.g. 256 in KITTI
+    Notes:
+        Given left and right image path,
+        1st: read images
+        2nd: pad or crop images to a given shape
+        3rd: down sample or up sample the images to the given shape
+        4th: model inference
+        5th: inversely down sample or up sample result
+        finally: if pad, retrieve to original shape; otherwise, nothing will be done
     Returns:
         If imgs is a str, a generator will be returned, otherwise return the
         detection results directly.
@@ -99,11 +112,15 @@ def inference_stereo(model,
     img_transform.append(T.Normalize(mean, std))
     img_transform = T.Compose(img_transform)
 
-    model.cfg.log_dir = log_dir
-    model.cfg.pad_to_shape = pad_to_shape
-    model.cfg.crop_shape = crop_shape
-    model.scale_factor = scale_factor
-    model.cfg.disp_scale = disp_scale
+    model.cfg.update(
+        {
+            'log_dir': log_dir,
+            'pad_to_shape': pad_to_shape,
+            'crop_shape': crop_shape,
+            'scale_factor': scale_factor,
+            'disp_div_factor': disp_div_factor
+        }
+    )
 
     device = next(model.parameters()).device  # model device
     for batchDict in batchesDict:
@@ -113,21 +130,20 @@ def inference_stereo(model,
 def _prepare_data(item, img_transform, cfg, device):
     origLeftImage = imread(item['left_image_path']).astype(np.float32)[:3]
     origRightImage = imread(item['right_image_path']).astype(np.float32)[:3]
-    origLeftDisp = load_disp(item, 'left_disp_map_path') / cfg.disp_scale
-    origRightDisp = load_disp(item, 'right_disp_map_path') / cfg.disp_scale
+    origLeftDisp = load_disp(item, 'left_disp_map_path', cfg.disp_div_factor)
+    origRightDisp = load_disp(item, 'right_disp_map_path', cfg.disp_div_factor)
 
     origSample = {'leftImage': origLeftImage,
                   'rightImage': origRightImage,
                   'leftDisp': origLeftDisp,
                   'rightDisp': origRightDisp}
 
-    if cfg.crop_shape is not None:
-        origSample = T.CenterCrop(cfg.crop_shape)(origSample)
-
     leftImage = origSample['leftImage'].copy().transpose(2, 0, 1)
     rightImage = origSample['rightImage'].copy().transpose(2, 0, 1)
-    leftDisp = origSample['leftDisp'].copy()[np.newaxis, ...]
-    rightDisp = origSample['rightDisp'].copy()[np.newaxis, ...]
+    if origLeftDisp is not None:
+        leftDisp = origSample['leftDisp'].copy()[np.newaxis, ...]
+    if origRightDisp is not None:
+        rightDisp = origSample['rightDisp'].copy()[np.newaxis, ...]
 
     processSample = {'leftImage': leftImage,
                      'rightImage': rightImage,
@@ -145,21 +161,6 @@ def _prepare_data(item, img_transform, cfg, device):
         'original_size': original_size,
     }
 
-    ori_shape = img.shape
-    img, img_shape, pad_shape, scale_factor = img_transform(
-        img,
-        scale=cfg.data.test.img_scale,
-        keep_ratio=cfg.data.test.get('resize_keep_ratio', True))
-    img = to_tensor(img).to(device).unsqueeze(0)
-    img_meta = [
-        dict(
-            ori_shape=ori_shape,
-            img_shape=img_shape,
-            pad_shape=pad_shape,
-            scale_factor=scale_factor,
-            flip=False)
-    ]
-    return dict(img=[img], img_meta=[img_meta])
 
 
 def _inference_single(model, batchDict, img_transform, device):
