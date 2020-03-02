@@ -6,7 +6,7 @@ import os.path as osp
 
 # model settings
 max_disp = 192
-C = 8
+C = 1
 
 model = dict(
     meta_architecture="AnyNet",
@@ -233,7 +233,7 @@ validate = True
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AnyNet/scene_flow_C8')
+work_dir = osp.join(root, 'exps/AnyNet/scene_flow')
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_10.pth')

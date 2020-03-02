@@ -33,17 +33,13 @@ model = dict(
     ),
     disp_predictor=dict(
         # default FasterSoftArgmin
-        type="LOCAL",  #  "FASTER",  #
+        type="FASTER",
         # the maximum disparity of disparity search range
         max_disp=max_disp,
-        # the radius of window when local sampling
-        radius=3,
         # the start disparity of disparity search range
         start_disp=0,
         # the step between near disparity sample
         dilation=1,
-        # the step between near disparity index when local sampling
-        radius_dilation=1,
         # the temperature coefficient of soft argmin
         alpha=1.0,
         # whether normalize the estimated cost volume
@@ -66,14 +62,14 @@ model = dict(
             # the variance of uni-modal distribution
             variance=1.2, # if not given, the variance will be estimated by network
         ),
-        # l1_loss=dict(
-        #     # the maximum disparity of disparity search range
-        #     max_disp=max_disp,
-        #     # weight for l1_loss with regard to other loss type
-        #     weight=0.1,
-        #     # weights for different scale loss
-        #     weights=(1.0, 0.7, 0.5),
-        # ),
+        l1_loss=dict(
+            # the maximum disparity of disparity search range
+            max_disp=max_disp,
+            # weight for l1_loss with regard to other loss type
+            weight=0.1,
+            # weights for different scale loss
+            weights=(1.0, 0.7, 0.5),
+        ),
     ),
     eval=dict(
         # evaluate the disparity map within (lower_bound, upper_bound)
@@ -191,11 +187,11 @@ gpus = 4
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 validate = True
-load_from = osp.join(root, 'exps/AcfNet/scene_flow_uniform_var1.2/epoch_19.pth')
+load_from = osp.join(root, 'exps/AcfNet/scene_flow_uniform/epoch_19.pth')
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AcfNet/kitti_2015_uniform_var1.2')
+work_dir = osp.join(root, 'exps/AcfNet/kitti_2015_uniform')
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_600.pth')

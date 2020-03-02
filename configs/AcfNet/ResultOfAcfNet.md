@@ -37,7 +37,7 @@ RMSProp, lr(10 epochs) schedule: 1-10 with lr\*1
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
 |    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         |
-|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8511 | 26h50m |
+|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8511 | 26h50m | [link][1], pw: 9s4e | [link][2]|
 
 
 ##### Disparity Predictor Ablation
@@ -70,7 +70,7 @@ RMSProp, lr(20 epochs) schedule: 1-20 with lr\*1
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
 |    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
-|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.7440 | 56h53m |
+|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.7440 | 56h53m | [link][1], pw: 9s4e | [link][2]|
 
 
 ##### Disparity Predictor Ablation
@@ -92,4 +92,55 @@ If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArg
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | D1(all) |  time  | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:-------:|:------:|:--------:|:-----------:|
 |    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
-|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 2.02    |
+|    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         |
+
+
+##How TO
+
+Alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin`
+
+In config file, change
+```python
+disp_predictor=dict(
+        # default FasterSoftArgmin
+        type="FASTER",
+        # the maximum disparity of disparity search range
+        max_disp=max_disp,
+        # the start disparity of disparity search range
+        start_disp=0,
+        # the step between near disparity sample
+        dilation=1,
+        # the temperature coefficient of soft argmin
+        alpha=1.0,
+        # whether normalize the estimated cost volume
+        normalize=True,
+    ),
+```
+
+to
+```python
+disp_predictor=dict(
+        # LocalSoftArgmin
+        type="LOCAL",
+        # the maximum disparity of disparity search range
+        max_disp=max_disp,
+        # the radius of window when local sampling
+        radius=3,
+        # the start disparity of disparity search range
+        start_disp=0,
+        # the step between near disparity sample
+        dilation=1,
+        # the step between near disparity index when local sampling
+        radius_dilation=1,
+        # the temperature coefficient of soft argmin
+        alpha=1.0,
+        # whether normalize the estimated cost volume
+        normalize=True,
+    ),
+
+```
+
+
+
+[1]: https://pan.baidu.com/s/11sR2mUEhCyp06g7LXsFG2g
+[2]: https://drive.google.com/open?id=1VwOrfEPfbdrzYvie2bVqUS1-8k_5_Yt1

@@ -33,17 +33,13 @@ model = dict(
     ),
     disp_predictor=dict(
         # default FasterSoftArgmin
-        type="LOCAL",  # "FASTER",  #
+        type="FASTER",
         # the maximum disparity of disparity search range
         max_disp=max_disp,
-        # the radius of window when local sampling
-        radius=3,
         # the start disparity of disparity search range
         start_disp=0,
         # the step between near disparity sample
         dilation=1,
-        # the step between near disparity index when local sampling
-        radius_dilation=1,
         # the temperature coefficient of soft argmin
         alpha=1.0,
         # whether normalize the estimated cost volume
@@ -185,8 +181,8 @@ load_from = None
 resume_from = None
 
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AcfNet/scene_flow_uniform_var1.2_l1')
+work_dir = osp.join(root, 'exps/AcfNet/scene_flow_uniform')
 
 # For test
-checkpoint = osp.join(work_dir, 'epoch_19.pth')
-out_dir = osp.join(work_dir, 'epoch_19')
+checkpoint = osp.join(work_dir, 'epoch_10.pth')
+out_dir = osp.join(work_dir, 'epoch_10')

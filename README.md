@@ -58,7 +58,7 @@ All our reimplemented methods will provide checkpoint in corresponding config fi
 |        Model       |   FLOPS   | Parameters | FPS  | Time(ms) | [SceneFlow (EPE)][3] | [KITTI 2012][2] | [KITTI 2015 (D1-all)][1] |
 |:------------------:|:---------:|:----------:|:----:|:--------:|:---------------:|:----------:|:-------------------:|
 |       PSMNet       | 938.186G  |  5.225M    | 1.67 |  599.2   | 1.112 (*1.090*) |            | 2.33  (*2.32*)|
-|  AcfNet(uniform)   | 1080.0G   |  5.227M    | 1.66 |  600.8   | 0.851 (*0.920*) |            |   (*1.89*)|
+|  AcfNet(uniform)   | 1080.0G   |  5.227M    | 1.66 |  600.8   | 0.851 (*0.920*) |
 |StereoNet-8x-single | 78.512G   |  399.066K  | 19.17|  52.2    | 1.533 (*1.525*) |
 |      DeepPruner    |
 |       AnyNet       |  1.476G   |  46.987K   |      |          | 3.190 (*~3.2*)  |

@@ -5,9 +5,6 @@ import shutil
 import tempfile
 import pandas as pd
 
-import sys
-sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
-
 import numpy as np
 from imageio import imread
 
@@ -200,15 +197,6 @@ def parse_args():
         help='job launcher'
     )
     parser.add_argument('--local_rank', type=int, default=0)
-
-    # TODO del
-    parser.add_argument('--out_path', default='',
-                        help='needed by job client')
-    parser.add_argument('--in_path', default='',
-                        help='needed by job client')
-    parser.add_argument('--pretrained_path', default='', help='needed by job client')
-    parser.add_argument('--job_name', default='', help='needed by job client')
-    parser.add_argument('--job_id', default='', help='needed by job client')
 
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:

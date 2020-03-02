@@ -42,9 +42,9 @@ class testModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.device = torch.device('cuda:1')
+        cls.device = torch.device('cuda:0')
         config_path = '/home/zhixiang/youmin/projects/depth/public/' \
-                      'DenseMatchingBenchmark/configs/AnyNet/scene_flow.py'
+                      'DenseMatchingBenchmark/configs/DeepPruner/scene_flow_8x.py'
         cls.cfg = Config.fromfile(config_path)
         cls.model = build_model(cls.cfg)
         cls.model.to(cls.device)
@@ -56,7 +56,7 @@ class testModel(unittest.TestCase):
     def setUpTimeTestingClass(cls):
         cls.iters = 50
 
-        h, w = 384, 1280
+        h, w = 384, 1248
         leftImage = torch.rand(1, 3, h, w).to(cls.device)
         rightImage = torch.rand(1, 3, h, w).to(cls.device)
         leftDisp = torch.rand(1, 1, h, w).to(cls.device)
@@ -94,12 +94,12 @@ class testModel(unittest.TestCase):
 
         self.avg_time[module_name] = avg_time
 
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_0_OutputModel(self):
         print(self.model)
         calcFlops(self.model, self.model_input['batch'])
 
-    # @unittest.skip("demonstrating skipping")
+    @unittest.skip("demonstrating skipping")
     def test_1_ModelTime(self):
         self.timeTemplate(self.model, 'Model', **self.model_input)
 
