@@ -16,9 +16,9 @@ class testBackbones(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.device = torch.device('cuda:7')
+        cls.device = torch.device('cuda:1')
         config_path = '/home/zhixiang/youmin/projects/depth/public/' \
-                      'DenseMatchingBenchmark/configs/MonoStereo/scene_flow.py'
+                      'DenseMatchingBenchmark/configs/AcfNet/scene_flow_uniform.py'
         cls.cfg = Config.fromfile(config_path)
         cls.backbone = build_backbone(cls.cfg)
         cls.backbone.to(cls.device)
@@ -75,6 +75,3 @@ if __name__ == '__main__':
     unittest.main()
 
 
-"""
-MonoStereo reference forward once takes 12.4504ms, i.e. 80.32fps
-"""

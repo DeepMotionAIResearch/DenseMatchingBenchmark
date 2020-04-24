@@ -7,7 +7,6 @@
 |    Model Name         |   FLOPS   | Parameters | FPS  | Time(ms) |
 |:---------------------:|:---------:|:----------:|:----:|:--------:|
 |  AcfNet(uniform)      | 1080.0G   |  5.227M    | 1.66 |  600.8   |
-|  AcfNet(uniform,2d)   | 3.534T    |  13.216M   | 3.49 |  286.3   |
 |  AcfNet(adaptive)     | 1239.0G   |  5.559M    | 1.38 |  723.1   |
 
 

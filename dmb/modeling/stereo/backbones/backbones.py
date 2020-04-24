@@ -1,9 +1,8 @@
-from .gc_net import GCNetBackbone
-from .psm_net import PSMNetBackbone
-from .stereo_net import StereoNetBackbone
-from .deep_pruner import DeepPrunerBestBackbone, DeepPrunerFastBackbone
-from .any_net import AnyNetBackbone
-from .mono_stereo import MonoStereoBackbone
+from .GCNet import GCNetBackbone
+from .PSMNet import PSMNetBackbone
+from .StereoNet import StereoNetBackbone
+from .DeepPruner import DeepPrunerBestBackbone, DeepPrunerFastBackbone
+from .AnyNet import AnyNetBackbone
 
 BACKBONES = {
     'GCNet': GCNetBackbone,
@@ -12,7 +11,6 @@ BACKBONES = {
     'BestDeepPruner': DeepPrunerBestBackbone,
     'FastDeepPruner': DeepPrunerFastBackbone,
     'AnyNet': AnyNetBackbone,
-    'MonoStereo': MonoStereoBackbone,
 }
 
 def build_backbone(cfg):

@@ -12,7 +12,7 @@ yacs
 pyyaml
 easydict
 cython
-mmcv
+mmcv==0.2.8
 ipython
 cupy
 thop

@@ -7,10 +7,12 @@ import os.path as osp
 
 from mmcv import mkdir_or_exist
 from dmb.data.datasets.utils.load_flow import write_flo
-
+from dmb.visualization.flow.show_result import ShowResultTool
 
 class SaveResultTool(object):
     def __call__(self, result, out_dir, image_name):
+        result_tool = ShowResultTool()
+        result = result_tool(result)
         if 'GrayDisparity' in result.keys():
             grayEstDisp = result['GrayDisparity']
             gray_save_path = osp.join(out_dir, 'flow_0')

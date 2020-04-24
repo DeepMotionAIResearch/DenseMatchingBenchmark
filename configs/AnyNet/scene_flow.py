@@ -4,9 +4,12 @@
 # ------------------------------------------------------------------------------
 import os.path as osp
 
+# the task of the model for, including 'stereo' and 'flow', default 'stereo'
+task = 'stereo'
+
 # model settings
 max_disp = 192
-C = 8
+C = 1
 
 model = dict(
     meta_architecture="AnyNet",
@@ -26,21 +29,21 @@ model = dict(
     ),
     cost_processor=dict(
         # Use the concatenation of left and right feature to form cost volume, then aggregation
-        type='ANYNET',
+        type='AnyNet',
         cost_computation=dict(
             # fast_cat_fms
             type="fast_mode",
             # the maximum disparity of disparity search range under the resolution of feature
             max_disp=dict(
                 init_guess=int(max_disp // 16),
-                warp_level_8=9,
-                warp_level_4=9,
+                warp_level_8=5,
+                warp_level_4=5,
             ),
             # the start disparity of disparity search range
             start_disp=dict(
                 init_guess=0,
-                warp_level_8=-4,
-                warp_level_4=-4,
+                warp_level_8=-2,
+                warp_level_4=-2,
             ),
             # the step between near disparity sample
             dilation=dict(
@@ -50,7 +53,7 @@ model = dict(
             ),
         ),
         cost_aggregator=dict(
-            type="ANYNET",
+            type="AnyNet",
             # the in planes of cost aggregation sub network
             in_planes=dict(
                 init_guess=8*C,
@@ -74,14 +77,14 @@ model = dict(
         # the maximum disparity of disparity search range
         max_disp=dict(
             init_guess=int(max_disp // 16),
-            warp_level_8=9,
-            warp_level_4=9,
+            warp_level_8=5,
+            warp_level_4=5,
         ),
         # the start disparity of disparity search range
         start_disp=dict(
             init_guess=0,
-            warp_level_8=-4,
-            warp_level_4=-4,
+            warp_level_8=-2,
+            warp_level_4=-2,
         ),
         # the step between near disparity sample
         dilation=dict(
@@ -95,7 +98,7 @@ model = dict(
         normalize=True,
     ),
     disp_refinement=dict(
-        type='ANYNET',
+        type='AnyNet',
         # the in planes of disparity refinement sub network
         in_planes=3,
         # the planes of convolution layer for spn
@@ -141,6 +144,7 @@ vis_data_root = osp.join(root, 'data/visualization_data/', dataset_type)
 vis_annfile_root = osp.join(vis_data_root, 'annotations')
 
 
+img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375])
 data = dict(
     # whether disparity of datasets is sparse, e.g., SceneFLow is not sparse, but KITTI is sparse
     sparse=False,
@@ -151,18 +155,16 @@ data = dict(
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_train.json'),
         input_shape=[512, 960],
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
         use_right_disp=False,
+        **img_norm_cfg,
     ),
     eval=dict(
         type=dataset_type,
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_test.json'),
         input_shape=[544, 960],
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
         use_right_disp=False,
+        **img_norm_cfg,
     ),
     # If you don't want to visualize the results, just uncomment the vis data
     vis=dict(
@@ -170,17 +172,15 @@ data = dict(
         data_root=vis_data_root,
         annfile=osp.join(vis_annfile_root, 'vis_test.json'),
         input_shape=[544, 960],
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
+        **img_norm_cfg,
     ),
     test=dict(
         type=dataset_type,
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_test.json'),
         input_shape=[544, 960],
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
         use_right_disp=False,
+        **img_norm_cfg,
     ),
 )
 
@@ -233,7 +233,7 @@ validate = True
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = osp.join(root, 'exps/AnyNet/scene_flow_C8Warp9')
+work_dir = osp.join(root, 'exps/AnyNet/scene_flow')
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_10.pth')

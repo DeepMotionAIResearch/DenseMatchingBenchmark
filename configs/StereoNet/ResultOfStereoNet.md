@@ -2,6 +2,25 @@
 
 ## Model Info
 
+```
+@inproceedings{khamis2018stereonet,
+  title={Stereonet: Guided hierarchical refinement for real-time edge-aware depth prediction},
+  author={Khamis, Sameh and Fanello, Sean and Rhemann, Christoph and Kowdle, Adarsh and Valentin, Julien and Izadi, Shahram},
+  booktitle={Proceedings of the European Conference on Computer Vision (ECCV)},
+  pages={573--590},
+  year={2018}
+}
+
+@inproceedings{zhang2018activestereonet,
+  title={Activestereonet: End-to-end self-supervised learning for active stereo systems},
+  author={Zhang, Yinda and Khamis, Sameh and Rhemann, Christoph and Valentin, Julien and Kowdle, Adarsh and Tankovich, Vladimir and Schoenberg, Michael and Izadi, Shahram and Funkhouser, Thomas and Fanello, Sean},
+  booktitle={Proceedings of the European Conference on Computer Vision (ECCV)},
+  pages={784--801},
+  year={2018}
+}
+
+```
+
 * Note: Test on GTX1080Ti, with resolution 384x1248.
 
 |    Model Name         |   FLOPS   | Parameters | FPS  | Time(ms) |

@@ -1,9 +1,6 @@
-from .HMNet import HMNet
-from .PWCNet import PWCNet
 
 _META_ARCHITECTURES = {
-    'HMNet': HMNet,
-    'PWCNet': PWCNet,
+
 }
 
 

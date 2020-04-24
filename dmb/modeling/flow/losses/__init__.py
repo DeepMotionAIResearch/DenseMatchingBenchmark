@@ -1,1 +1,0 @@
-from .builder import make_gof_loss_evaluator

@@ -15,10 +15,10 @@ class KittiDatasetBase(StereoDatasetBase):
         # only take first three RGB channel no matter in RGB or RGBA format
         leftImage = imread(
             osp.join(self.root, item['left_image_path'])
-        ).transpose(2, 0, 1).astype(np.float32)[:3] / 255.0
+        ).transpose(2, 0, 1).astype(np.float32)[:3]
         rightImage = imread(
             osp.join(self.root, item['right_image_path'])
-        ).transpose(2, 0, 1).astype(np.float32)[:3] / 255.0
+        ).transpose(2, 0, 1).astype(np.float32)[:3]
 
         h, w = leftImage.shape[1], leftImage.shape[2]
         original_size = (h, w)

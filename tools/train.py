@@ -3,10 +3,7 @@ from __future__ import division
 import argparse
 import os
 import os.path as osp
-
-import sys
-sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
-
+import time
 
 import torch
 
@@ -45,16 +42,6 @@ def parse_args():
     )
     parser.add_argument('--local_rank', type=int, default=0)
 
-    #TODO del
-    parser.add_argument('--out_path',
-                        help='needed by job client')
-    parser.add_argument('--in_path',
-                        help='needed by job client')
-    parser.add_argument('--pretrained_path', help='needed by job client')
-    parser.add_argument('--job_name', help='needed by job client')
-    parser.add_argument('--job_id', help='needed by job client')
-
-
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -88,13 +75,19 @@ def main():
 
     mkdir_or_exist(cfg.work_dir)
     # init logger before other step and setup training logger
-    logger = get_root_logger(cfg.work_dir, cfg.log_level)
+    # init the logger before other steps
+    timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+    log_file = osp.join(cfg.work_dir, '{}_log.txt'.format(timestamp))
+    logger = get_root_logger(cfg.work_dir, cfg.log_level, filename=log_file)
     logger.info("Using {} GPUs".format(cfg.gpus))
     logger.info('Distributed training: {}'.format(distributed))
 
     # log environment info
     logger.info("Collecting env info (might take some time)")
+    dash_line = '-' * 60 + '\n'
+    logger.info('Environment info:\n' + dash_line)
     logger.info("\n" + collect_env_info())
+    logger.info('\n' + dash_line)
 
     logger.info(args)
 

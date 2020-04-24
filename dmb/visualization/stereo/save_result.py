@@ -6,10 +6,14 @@ import os
 import os.path as osp
 
 from mmcv import mkdir_or_exist
+from dmb.visualization.stereo.show_result import ShowResultTool
 
 
 class SaveResultTool(object):
     def __call__(self, result, out_dir, image_name):
+        result_tool = ShowResultTool()
+        result = result_tool(result, color_map='gray', bins=100)
+
         if 'GrayDisparity' in result.keys():
             grayEstDisp = result['GrayDisparity']
             gray_save_path = osp.join(out_dir, 'disp_0')

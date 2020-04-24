@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .utils.dif_fms import fast_dif_fms
-from .aggregators.anynet import AnyNetAggregator
+from .aggregators.AnyNet import AnyNetAggregator
 
 class AnyNetProcessor(nn.Module):
     """

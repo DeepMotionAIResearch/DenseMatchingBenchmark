@@ -42,9 +42,9 @@ class testModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.device = torch.device('cuda:6')
+        cls.device = torch.device('cuda:2')
         config_path = '/home/zhixiang/youmin/projects/depth/public/' \
-                      'DenseMatchingBenchmark/configs/MonoStereo/scene_flow.py'
+                      'DenseMatchingBenchmark/configs/PSMNet/kitti_2015.py'
         cls.cfg = Config.fromfile(config_path)
         cls.model = build_model(cls.cfg)
         cls.model.to(cls.device)
@@ -94,13 +94,15 @@ class testModel(unittest.TestCase):
 
         self.avg_time[module_name] = avg_time
 
-    @unittest.skip("demonstrating skipping")
+    # @unittest.skip("demonstrating skipping")
     def test_2_OutputModel(self):
+        print('\n', '*'*40, 'Model Configuration Result', '*'*40)
         print(self.model)
         calcFlops(self.model, self.model_input['batch'])
 
     # @unittest.skip("demonstrating skipping")
     def test_3_ModelTime(self):
+        print('\n', '*'*40, 'Runtime Test Result', '*'*40)
         self.timeTemplate(self.model, 'Model', **self.model_input)
 
     # @unittest.skip("demonstrating skipping")
@@ -116,6 +118,8 @@ class testModel(unittest.TestCase):
 
         self.model.train()
         _, loss_dict = self.model(batch)
+
+        print('\n', '*'*40, 'Train Result', '*'*40)
         for k, v in loss_dict.items():
             print(k, v)
 
@@ -140,6 +144,7 @@ class testModel(unittest.TestCase):
         with torch.no_grad():
             result, _ = self.model(batch)
 
+        print('\n', '*'*40, 'Test Result', '*'*40)
         print('Result for disparity:')
         print('Length of disparity map list: ', len(result['disps']))
         for i in range(len(result['disps'])):
@@ -167,9 +172,3 @@ if __name__ == '__main__':
     unittest.main()
 
 
-"""
-
-8: MonoStereo reference forward once takes 53.6991ms, i.e. 18.62fps
-4: MonoStereo reference forward once takes 40.6672ms, i.e. 24.59fps
-
-"""

@@ -5,8 +5,8 @@ from .utils.dif_fms import DIF_FUNCS
 from .utils.correlation1d_cost import COR_FUNCS
 from .aggregators import build_cost_aggregator
 
-from .deeppruner import DeepPrunerProcessor
-from .anynet import AnyNetProcessor
+from .DeepPruner import DeepPrunerProcessor
+from .AnyNet import AnyNetProcessor
 
 
 class CostProcessor(nn.Module):
@@ -87,11 +87,11 @@ class CorCostProcessor(CostProcessor):
 
 
 PROCESSORS = {
-    'DIF': DifCostProcessor,
-    'CAT': CatCostProcessor,
-    'COR': CorCostProcessor,
-    'DEEPPRUNER': DeepPrunerProcessor,
-    'ANYNET': AnyNetProcessor,
+    'Difference': DifCostProcessor,
+    'Concatenation': CatCostProcessor,
+    'Correlation': CorCostProcessor,
+    'DeepPruner': DeepPrunerProcessor,
+    'AnyNet': AnyNetProcessor,
 }
 
 def build_cost_processor(cfg):

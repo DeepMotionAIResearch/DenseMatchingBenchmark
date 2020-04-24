@@ -4,10 +4,7 @@ import os.path as osp
 import shutil
 import tempfile
 import pandas as pd
-
-import sys
-sys.path.insert(0, osp.join(osp.dirname(osp.abspath(__file__)), '../'))
-
+import time
 
 import numpy as np
 from imageio import imread
@@ -55,6 +52,9 @@ def disp_(cfg, ori_result, data):
     from dmb.data.datasets.evaluation.stereo.eval_hooks import disp_evaluation
 
     disps = ori_result['disps']
+    # remove the padding when data augmentation
+    ori_size = data['original_size']
+    disps = remove_padding(disps, ori_size)
 
     # evaluation
     whole_error_dict, data = disp_evaluation(cfg.copy(), disps, data)
@@ -77,7 +77,10 @@ def disp_(cfg, ori_result, data):
 
 def flow_(cfg, ori_result, data):
     from dmb.data.datasets.evaluation.flow.eval_hooks import flow_evaluation
+    from dmb.data.datasets.evaluation.flow.eval_hooks import remove_padding
     flows = ori_result['flows']
+    ori_size = data['original_size']
+    flows = remove_padding(flows, ori_size)
 
     # evaluation
     whole_error_dict, data = flow_evaluation(cfg.copy(), flows, data)
@@ -222,15 +225,6 @@ def parse_args():
     )
     parser.add_argument('--local_rank', type=int, default=0)
 
-    # TODO del
-    parser.add_argument('--out_path',
-                        help='needed by job client')
-    parser.add_argument('--in_path',
-                        help='needed by job client')
-    parser.add_argument('--pretrained_path', help='needed by job client')
-    parser.add_argument('--job_name', help='needed by job client')
-    parser.add_argument('--job_id', help='needed by job client')
-
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -264,14 +258,20 @@ def main():
     mkdir_or_exist(cfg.out_dir)
 
     # init logger before other step and setup training logger
-    logger = get_root_logger(cfg.out_dir, cfg.log_level, filename="test_log.txt")
-    logger.info("Using {} GPUs".format(args.gpus))
-    logger.info("Whether the result will be saved to disk in image: {}".format(args.show))
+    # init the logger before other steps
+    timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+    log_file = osp.join(cfg.work_dir, '{}_test_log.txt'.format(timestamp))
+    logger = get_root_logger(cfg.out_dir, cfg.log_level, filename=log_file)
+    logger.info("Using {} GPUs".format(cfg.gpus))
     logger.info('Distributed training: {}'.format(distributed))
+    logger.info("Whether the result will be saved to disk in image: {}".format(args.show))
 
     # log environment info
     logger.info("Collecting env info (might take some time)")
+    dash_line = '-' * 60 + '\n'
+    logger.info('Environment info:\n' + dash_line)
     logger.info("\n" + collect_env_info())
+    logger.info('\n' + dash_line)
 
     logger.info(args)
 
