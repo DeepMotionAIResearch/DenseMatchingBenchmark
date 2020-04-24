@@ -65,7 +65,7 @@ All our reimplemented methods will provide checkpoint in corresponding config fi
 
 ## Changelog
 
-Update Time: 24/04/202
+Update Time: 24/04/2020
 
 1. Integrate Optical Flow task into our architecture
 2. Inference a model is avaliable
