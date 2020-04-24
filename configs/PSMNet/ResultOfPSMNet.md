@@ -1,5 +1,15 @@
 # Result of PSMNet
 
+```
+@inproceedings{chang2018pyramid,
+  title={Pyramid Stereo Matching Network},
+  author={Chang, Jia-Ren and Chen, Yong-Sheng},
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  pages={5410--5418},
+  year={2018}
+}
+```
+
 ## Model Info
 
 * Note: Test on GTX1080Ti, with resolution 384x1248.

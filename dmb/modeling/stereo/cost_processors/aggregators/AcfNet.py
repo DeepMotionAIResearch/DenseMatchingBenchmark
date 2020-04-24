@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from dmb.modeling.stereo.layers.basic_layers import conv3d_bn, conv3d_bn_relu
+from dmb.modeling.stereo.layers.basic_layers import conv3d_bn, conv3d_bn_relu, conv_bn_relu, conv_bn
 from dmb.modeling.stereo.cost_processors.utils.hourglass import Hourglass
 
 
@@ -88,3 +88,5 @@ class AcfAggregator(nn.Module):
         cost3 = torch.squeeze(cost3, 1)
 
         return [cost3, cost2, cost1]
+
+

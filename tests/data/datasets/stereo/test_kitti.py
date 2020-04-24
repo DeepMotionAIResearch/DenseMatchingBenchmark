@@ -4,7 +4,7 @@ import unittest
 
 from mmcv import Config
 
-from dmb.data.datasets.stereo import build_dataset
+from dmb.data.datasets.stereo import build_stereo_dataset as build_dataset
 
 
 class TestKITTIDataset(unittest.TestCase):

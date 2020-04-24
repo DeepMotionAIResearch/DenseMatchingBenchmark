@@ -2,6 +2,15 @@
 
 ## Model Info
 
+```
+@inproceedings{Duggal2019ICCV,  
+title = {DeepPruner: Learning Efficient Stereo Matching  via Differentiable PatchMatch},  
+author = {Shivam Duggal and Shenlong Wang and Wei-Chiu Ma and Rui Hu and Raquel Urtasun},  
+booktitle = {ICCV},  
+year = {2019}
+}
+```
+
 * Note: Test on GTX1080Ti, with resolution 384x1280.
 
 |    Model Name         |   FLOPS   | Parameters | FPS  | Time(ms) |

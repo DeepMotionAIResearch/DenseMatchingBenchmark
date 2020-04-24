@@ -1,7 +1,7 @@
-from .deep_prunner import DeepPrunerSampler
+from .DeepPruner import DeepPrunerSampler
 
 SAMPLER = {
-    "DEEPPRUNER": DeepPrunerSampler,
+    "DeepPruner": DeepPrunerSampler,
 }
 
 

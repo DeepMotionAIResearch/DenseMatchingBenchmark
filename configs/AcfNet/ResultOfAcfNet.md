@@ -43,7 +43,7 @@ RMSProp, lr(10 epochs) schedule: 1-10 with lr\*1
 
 ##### Disparity Predictor Ablation
 
-If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin` during reference
+If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin` only for reference
 
 
 |   model name   | predictor |    1PE    |    2PE    |    3PE    |    5PE    | EPE(px)   |
@@ -76,7 +76,7 @@ RMSProp, lr(20 epochs) schedule: 1-20 with lr\*1
 
 ##### Disparity Predictor Ablation
 
-If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin` during reference
+If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin` only for reference
 
 
 |   model name   | predictor |    1PE    |    2PE    |    3PE    |    5PE    | EPE(px)   |
@@ -96,7 +96,7 @@ If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArg
 |    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         |
 
 
-##How TO
+## How TO
 
 Alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin`
 

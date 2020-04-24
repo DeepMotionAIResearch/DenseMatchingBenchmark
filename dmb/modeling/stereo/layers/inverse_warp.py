@@ -13,11 +13,11 @@ def inverse_warp(img, disp, padding_mode='zeros'):
     b, _, h, w = disp.size()
 
     # [1, H, W]  copy 0-height for w times : y coord
-    i_range = torch.arange(0, h).view(1, h, 1).expand(1, h, w).type_as(disp)
+    i_range = torch.arange(0, h).view(1, h, 1).expand(1, h, w).float()
     # [1, H, W]  copy 0-width for h times  : x coord
-    j_range = torch.arange(0, w).view(1, 1, w).expand(1, h, w).type_as(disp)
+    j_range = torch.arange(0, w).view(1, 1, w).expand(1, h, w).float()
 
-    pixel_coords = torch.stack((j_range, i_range), dim=1).type_as(disp).to(disp.device)  # [1, 2, H, W]
+    pixel_coords = torch.stack((j_range, i_range), dim=1).float().to(disp.device)  # [1, 2, H, W]
     batch_pixel_coords = pixel_coords.expand(b, 2, h, w).contiguous().view(b, 2, -1)  # [B, 2, H*W]
 
     X = batch_pixel_coords[:, 0, :] + disp.contiguous().view(b, -1)  # [B, H*W]

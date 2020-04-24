@@ -3,6 +3,7 @@ from __future__ import division
 import argparse
 import os
 import os.path as osp
+import time
 
 import torch
 
@@ -11,8 +12,8 @@ from mmcv import mkdir_or_exist
 
 from dmb.utils.collect_env import collect_env_info
 from dmb.utils.env import init_dist, get_root_logger, set_random_seed
-from dmb.modeling.stereo import build_stereo_model as build_model
-from dmb.data.datasets.stereo import build_dataset
+from dmb.modeling import build_model
+from dmb.data.datasets import build_dataset
 from dmb.apis.train import train_matcher
 
 
@@ -74,13 +75,19 @@ def main():
 
     mkdir_or_exist(cfg.work_dir)
     # init logger before other step and setup training logger
-    logger = get_root_logger(cfg.work_dir, cfg.log_level)
+    # init the logger before other steps
+    timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+    log_file = osp.join(cfg.work_dir, '{}_log.txt'.format(timestamp))
+    logger = get_root_logger(cfg.work_dir, cfg.log_level, filename=log_file)
     logger.info("Using {} GPUs".format(cfg.gpus))
     logger.info('Distributed training: {}'.format(distributed))
 
     # log environment info
     logger.info("Collecting env info (might take some time)")
+    dash_line = '-' * 60 + '\n'
+    logger.info('Environment info:\n' + dash_line)
     logger.info("\n" + collect_env_info())
+    logger.info('\n' + dash_line)
 
     logger.info(args)
 

@@ -1,7 +1,7 @@
 from .smooth_l1_loss import DispSmoothL1Loss
 from .gerf_loss import DispGERFLoss
 from .stereo_focal_loss import StereoFocalLoss
-
+from .relative_loss import RelativeLoss
 
 # smooth l1 loss
 def make_sll_loss_evaluator(cfg):
@@ -41,6 +41,15 @@ def make_focal_loss_evaluator(cfg):
         focal_coefficient=coefficient, sparse=sparse
     )
 
+# relative loss
+def make_relative_loss_evaluator(cfg):
+    max_disp = cfg.model.losses.relative_loss.get('max_disp', None)
+    start_disp = cfg.model.losses.relative_loss.get('start_disp', 0)
+    weights = cfg.model.losses.relative_loss.get('weights', None)
+    sparse = cfg.data.sparse
+
+    return RelativeLoss(max_disp=max_disp, start_disp=start_disp, weights=weights, sparse=sparse)
+
 
 class CombinedLossEvaluators(object):
 
@@ -59,7 +68,10 @@ class CombinedLossEvaluators(object):
             elif isinstance(loss_evaluator, DispGERFLoss):
                 loss_dict = loss_evaluator(disps, target)
             elif isinstance(loss_evaluator, StereoFocalLoss):
-                loss_dict = loss_evaluator(costs, target, **kwargs)
+                variance = kwargs['variance']
+                loss_dict = loss_evaluator(costs, target, variance)
+            elif isinstance(loss_evaluator, RelativeLoss):
+                loss_dict = loss_evaluator(kwargs['relative_disps'], target, kwargs['relative_labels'])
             else:
                 raise ValueError("{} not implemented.".format(loss_name))
 
@@ -88,5 +100,10 @@ def make_gsm_loss_evaluator(cfg):
         focal_loss_evaluator = make_focal_loss_evaluator(cfg)
         loss_evaluators["focal_loss"] = focal_loss_evaluator
         loss_weights["focal_loss"] = cfg.model.losses.focal_loss.weight
+
+    if "relative_loss" in cfg.model.losses:
+        relative_loss_evaluators = make_relative_loss_evaluator(cfg)
+        loss_evaluators["relative_loss"] = relative_loss_evaluators
+        loss_weights["relative_loss"] = cfg.model.losses.relative_loss.weight
 
     return CombinedLossEvaluators(cfg, loss_evaluators, loss_weights)

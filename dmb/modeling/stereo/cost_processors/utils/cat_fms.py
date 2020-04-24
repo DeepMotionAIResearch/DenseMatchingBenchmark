@@ -74,7 +74,7 @@ def fast_cat_fms(reference_fm, target_fm, max_disp=192, start_disp=0, dilation=1
     concat_target_fm = inverse_warp_3d(concat_target_fm, -disp_sample, padding_mode='zeros')
 
     # mask out features in reference
-    concat_reference_fm = concat_reference_fm * (concat_target_fm > 0).type_as(concat_reference_fm)
+    concat_reference_fm = concat_reference_fm * (concat_target_fm > 0).float()
 
     # [B, 2C, D, H, W)
     concat_fm = torch.cat((concat_reference_fm, concat_target_fm), dim=1)

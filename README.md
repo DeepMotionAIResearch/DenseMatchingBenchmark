@@ -1,6 +1,6 @@
 # DenseMatchingBenchmark
 This project aims at providing the necessary building blocks for easily
-creating dense matching models, e.g. Stereo Matching, Scene Flow using **PyTorch 1.1** or higher.
+creating dense matching models, e.g. Stereo Matching, Scene Flow using **PyTorch 1.2** or higher.
 
 ## Introduction
 Our architecture is based on two wellknown detection framework: [mmdetection](https://github.com/open-mmlab/mmdetection) and [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark). By integating their major features, our architecture is suitable for dense matching, and achieves robust performance！
@@ -41,7 +41,7 @@ Please see [GETTING_STARTED.md](GETTING_STARTED.md) for the basic usage of Dense
 
 ## TODO
 
-- [ ] inference
+- [x] inference
 - [ ] visulization tool(for cost volume)
 - [ ] unsupervised mono-depth
 - [ ] unsupervised stereo
@@ -62,6 +62,14 @@ All our reimplemented methods will provide checkpoint in corresponding config fi
 |StereoNet-8x-single | 78.512G   |  399.066K  | 19.17|  52.2    | 1.533 (*1.525*) |
 |      DeepPruner    |
 |       AnyNet       |  1.476G   |  46.987K   |      |          | 3.190 (*~3.2*)  |
+
+## Changelog
+
+Update Time: 24/04/202
+
+1. Integrate Optical Flow task into our architecture
+2. Inference a model is avaliable
+3. Unify the format of module's name
 
 ## Contributing
 
@@ -92,6 +100,7 @@ If you use this toolbox or benchmark in your research, please cite this project.
 
 This repo is currently maintained by Youmin Zhang([@youmi-zym](http://github.com/youmi-zym))
  and Yimin Chen ([@Minwell-dht](http://github.com/Minwellcym))
+ 
 ## License
 DenseMatchingBenchmark is released under the MIT license. See [LICENSE](LICENSE) for additional details.
 

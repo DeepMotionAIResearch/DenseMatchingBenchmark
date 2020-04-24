@@ -106,11 +106,12 @@ class AnyNet(nn.Module):
 
 
         # refine the disparity map in `disps_warp_level_4` with spn
-        # list, [[B, 1, H//4, W//4]]
-        disps_refine = self.disp_refinement(disps_warp_level_4, ref_fms_4, tgt_fms_4, ref_img, tgt_img)
+        # list, [[B, 1, H//4, W//4],[B, 1, H//4, W//4]]
+        disps = disps_warp_level_4
+        disps = self.disp_refinement(disps, ref_fms_4, tgt_fms_4, ref_img, tgt_img)
 
         # list adding, length = 4
-        disps = disps_refine + disps_warp_level_4 + disps_warp_level_8 + disps_init_guess
+        disps = disps + disps_warp_level_8 + disps_init_guess
 
         # up-sample all disparity map to full resolution, length = 4
         H, W = ref_img.shape[-2:]

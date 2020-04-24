@@ -94,7 +94,7 @@ Optional arguments are:
 
 ## Inference a model
 
-On the way.
+The [Inference API](dmb/apis/inference.py) has been provided. Supporting resize, pad or crop the images for inference. 
 
 
 ## Others

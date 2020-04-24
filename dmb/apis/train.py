@@ -12,9 +12,11 @@ from dmb.utils.env import get_root_logger
 from dmb.data.loaders import build_data_loader
 from dmb.utils.solver import build_optimizer
 from dmb.data.datasets.evaluation.stereo import DistStereoEvalHook
+from dmb.data.datasets.evaluation.flow import DistFlowEvalHook
 from dmb.utils import DistOptimizerHook, DistApexOptimizerHook
 from dmb.utils import TensorboardLoggerHook, TextLoggerHook
 from dmb.visualization.stereo import DistStereoVisHook
+from dmb.visualization.flow import DistFlowVisHook
 
 # See if we can use apex.DistributedDataParallel instead of the torch default,
 # and enable mixed-precision via apex.amp
@@ -148,12 +150,19 @@ def _dist_train(
     # register eval hooks
     if validate:
         interval = cfg.get('validate_interval', 1)
+        task = cfg.get('task', 'stereo')
         if eval_dataset is not None:
             logger.info("Register Evaluation Hook...")
-            runner.register_hook(DistStereoEvalHook(cfg, eval_dataset, interval))
+            if task == 'stereo':
+                runner.register_hook(DistStereoEvalHook(cfg, eval_dataset, interval))
+            elif task == 'flow':
+                runner.register_hook(DistFlowEvalHook(cfg, eval_dataset, interval))
         if vis_dataset is not None:
             logger.info("Register Visualization hook...")
-            runner.register_hook(DistStereoVisHook(vis_dataset, cfg, interval))
+            if task == 'stereo':
+                runner.register_hook(DistStereoVisHook(vis_dataset, cfg, interval))
+            elif task == 'flow':
+                runner.register_hook(DistFlowVisHook(vis_dataset, cfg, interval))
 
     if cfg.resume_from:
         runner.resume(cfg.resume_from)

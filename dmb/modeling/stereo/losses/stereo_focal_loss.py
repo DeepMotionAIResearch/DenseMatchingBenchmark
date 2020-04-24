@@ -80,7 +80,7 @@ class StereoFocalLoss(object):
         mask = mask.detach_().type_as(scaled_gtDisp)
         if mask.sum() < 1.0:
             print('Stereo focal loss: there is no point\'s '
-                  'disparity is in [{},{})!'.format(lower_bound, upper_bound))
+                  'disparity is within [{},{})!'.format(lower_bound, upper_bound))
             scaled_gtProb = torch.zeros_like(estCost)  # let this sample have loss with 0
         else:
             # transfer disparity map to probability map
@@ -94,9 +94,9 @@ class StereoFocalLoss(object):
         valid_pixel_number = mask.float().sum()
         if valid_pixel_number < 1.0:
             valid_pixel_number = 1.0
-        estProb = F.log_softmax(estCost, dim=1)
+        estLogProb = F.log_softmax(estCost, dim=1)
         weight = (1.0 - scaled_gtProb).pow(-self.focal_coefficient).type_as(scaled_gtProb)
-        loss = -((scaled_gtProb * estProb) * weight * mask.float()).sum() / valid_pixel_number
+        loss = -((scaled_gtProb * estLogProb) * weight * mask.float()).sum() / valid_pixel_number
 
         return loss
 

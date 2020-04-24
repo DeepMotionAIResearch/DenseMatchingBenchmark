@@ -4,7 +4,7 @@ import unittest
 
 from mmcv import Config
 
-from dmb.data.datasets.stereo.builder import build_dataset
+from dmb.data.datasets.stereo.builder import build_stereo_dataset as build_dataset
 
 
 class TestSceneFlowDataset(unittest.TestCase):
@@ -14,8 +14,8 @@ class TestSceneFlowDataset(unittest.TestCase):
             data=dict(
                 train=dict(
                     type='SceneFlow',
-                    data_root='datasets/SceneFlow',
-                    annfile='datasets/SceneFlow/annotations/cleanpass_train.json',
+                    data_root='/home/youmin/data/StereoMatching/SceneFlow/',
+                    annfile='/home/youmin/data/annotations/SceneFlow/cleanpass_train.json',
                     input_shape=[256, 512],
                     mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225],

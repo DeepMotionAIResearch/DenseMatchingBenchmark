@@ -63,6 +63,47 @@ class Disp2Prob(object):
         self.disp_sample = disp_sample
         self.eps = 1e-40
 
+    def getCost(self):
+        # [BatchSize, 1, Height, Width]
+        b, c, h, w = self.gtDisp.shape
+        assert c == 1
+
+        # if start_disp = 0, dilation = 1, then generate disparity candidates as [0, 1, 2, ... , maxDisp-1]
+        if self.disp_sample is None:
+            self.disp_sample_number = (self.max_disp + self.dilation - 1) // self.dilation
+
+            # [disp_sample_number]
+            self.disp_sample = torch.linspace(
+                self.start_disp, self.end_disp, self.disp_sample_number
+            ).to(self.gtDisp.device)
+
+            # [BatchSize, disp_sample_number, Height, Width]
+            self.disp_sample = self.disp_sample.repeat(b, h, w, 1).permute(0, 3, 1, 2).contiguous()
+
+
+        # value of gtDisp must within (start_disp, end_disp), otherwise, we have to mask it out
+        mask = (self.gtDisp > self.start_disp) & (self.gtDisp < self.end_disp)
+        mask = mask.detach().type_as(self.gtDisp)
+        self.gtDisp = self.gtDisp * mask
+
+        # [BatchSize, disp_sample_number, Height, Width]
+        cost = self.calCost()
+
+        # let the outliers' cost to be -inf
+        # [BatchSize, disp_sample_number, Height, Width]
+        cost = cost * mask - 1e12
+
+        # in case cost is NaN
+        if isNaN(cost.min()) or isNaN(cost.max()):
+            print('Cost ==> min: {:.4f}, max: {:.4f}'.format(cost.min(), cost.max()))
+            print('Disparity Sample ==> min: {:.4f}, max: {:.4f}'.format(self.disp_sample.min(),
+                                                                         self.disp_sample.max()))
+            print('Disparity Ground Truth after mask out ==> min: {:.4f}, max: {:.4f}'.format(self.gtDisp.min(),
+                                                                                      self.gtDisp.max()))
+            raise ValueError(" \'cost contains NaN!")
+
+        return cost
+
     def getProb(self):
         # [BatchSize, 1, Height, Width]
         b, c, h, w = self.gtDisp.shape
@@ -96,14 +137,20 @@ class Disp2Prob(object):
 
         # in case probability is NaN
         if isNaN(probability.min()) or isNaN(probability.max()):
-            print('Probability ==> min: {}, max: {}'.format(probability.min(), probability.max()))
-            print('Disparity Ground Truth after mask out ==> min: {}, max: {}'.format(self.gtDisp.min(),
+            print('Probability ==> min: {:.4f}, max: {:.4f}'.format(probability.min(), probability.max()))
+            print('Disparity Sample ==> min: {:.4f}, max: {:.4f}'.format(self.disp_sample.min(),
+                                                                         self.disp_sample.max()))
+            print('Disparity Ground Truth after mask out ==> min: {:.4f}, max: {:.4f}'.format(self.gtDisp.min(),
                                                                                       self.gtDisp.max()))
             raise ValueError(" \'probability contains NaN!")
 
         return probability
 
+
     def calProb(self):
+        raise NotImplementedError
+
+    def calCost(self):
         raise NotImplementedError
 
 
@@ -113,10 +160,15 @@ class LaplaceDisp2Prob(Disp2Prob):
         super(LaplaceDisp2Prob, self).__init__(gtDisp, max_disp, start_disp, dilation, disp_sample)
         self.variance = variance
 
-    def calProb(self):
+    def calCost(self):
         # 1/N * exp( - (d - d{gt}) / var), N is normalization factor, [BatchSize, maxDisp, Height, Width]
-        scaled_distance = ((-torch.abs(self.disp_sample - self.gtDisp)) / self.variance)
-        probability = F.softmax(scaled_distance, dim=1)
+        cost = ((-torch.abs(self.disp_sample - self.gtDisp)) / self.variance)
+
+        return cost
+
+    def calProb(self):
+        cost = self.calCost()
+        probability = F.softmax(cost, dim=1)
 
         return probability
 
@@ -127,14 +179,18 @@ class GaussianDisp2Prob(Disp2Prob):
         super(GaussianDisp2Prob, self).__init__(gtDisp, max_disp, start_disp, dilation, disp_sample)
         self.variance = variance
 
-    def calProb(self):
+    def calCost(self):
         # 1/N * exp( - (d - d{gt})^2 / b), N is normalization factor, [BatchSize, maxDisp, Height, Width]
         distance = (torch.abs(self.disp_sample - self.gtDisp))
-        scaled_distance = (- distance.pow(2.0) / self.variance)
-        probability = F.softmax(scaled_distance, dim=1)
+        cost = (- distance.pow(2.0) / self.variance)
+
+        return cost
+
+    def calProb(self):
+        cost = self.calCost()
+        probability = F.softmax(cost, dim=1)
 
         return probability
-
 
 
 class OneHotDisp2Prob(Disp2Prob):

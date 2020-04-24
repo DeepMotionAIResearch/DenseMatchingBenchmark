@@ -70,7 +70,7 @@ class LocalSoftArgmin(nn.Module):
                                   self.radius * self.radius_dilation,
                                   2 * self.radius + 1).long().to(cost_volume.device)
         # (BatchSize, 2 * radius + 1, Height, Width)
-        interval = interval.repeat(B, H, W, 1).permute(0, 3, 1, 2).contiguous()
+        interval = interval.repeat(b, h, w, 1).permute(0, 3, 1, 2).contiguous()
 
         # (BatchSize, 2*radius+1, Height, Width)
         index_group = (max_index + interval)

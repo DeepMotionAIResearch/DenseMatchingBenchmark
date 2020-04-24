@@ -23,14 +23,14 @@ class testDispPredictors(unittest.TestCase):
         self.device = torch.device("cuda:1")
 
         # FasterSoftArgmin
-        # self.pred_type = 'FASTER'
-        # self.radius = None
-        # self.radius_dilation = None
+        self.pred_type = 'FASTER'
+        self.radius = None
+        self.radius_dilation = None
 
         # LocalSoftArgmin
-        self.pred_type = 'LOCAL'
-        self.radius = 2
-        self.radius_dilation = 1
+        # self.pred_type = 'LOCAL'
+        # self.radius = 2
+        # self.radius_dilation = 1
 
         # SoftArgmin
         # self.pred_type = 'DEFAULT'

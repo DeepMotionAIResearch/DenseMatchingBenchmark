@@ -6,6 +6,9 @@
 # ------------------------------------------------------------------------------
 import os.path as osp
 
+# the task of the model for, including 'stereo' and 'flow', default 'stereo'
+task = 'stereo'
+
 # model settings
 max_disp = 192
 model = dict(
@@ -25,7 +28,7 @@ model = dict(
     ),
     cost_processor=dict(
         # Use the difference between left and right feature to form cost volume, then aggregation
-        type='DIF',
+        type='Difference',
         cost_computation = dict(
             # default cat_fms
             type="default",
@@ -37,7 +40,7 @@ model = dict(
             dilation = 1,
         ),
         cost_aggregator=dict(
-            type="STEREONET",
+            type="StereoNet",
             # the maximum disparity of disparity search range
             max_disp = max_disp,
             # the in planes of cost aggregation sub network
@@ -60,7 +63,7 @@ model = dict(
 
     ),
     disp_refinement=dict(
-        type='STEREONET',
+        type='StereoNet',
         # the in planes of disparity refinement sub network
         in_planes=4,
         # the number of edge aware refinement module
@@ -106,6 +109,7 @@ vis_data_root = osp.join(root, 'data/visualization_data/', dataset_type)
 vis_annfile_root = osp.join(vis_data_root, 'annotations')
 
 
+img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375])
 data = dict(
     # whether disparity of datasets is sparse, e.g., SceneFLow is not sparse, but KITTI is sparse
     sparse=False,
@@ -116,18 +120,16 @@ data = dict(
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_train.json'),
         input_shape=[512, 960],
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
         use_right_disp=False,
+        **img_norm_cfg,
     ),
     eval=dict(
         type=dataset_type,
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_test.json'),
         input_shape=[544, 960],
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
         use_right_disp=False,
+        **img_norm_cfg,
     ),
     # If you don't want to visualize the results, just uncomment the vis data
     vis=dict(
@@ -135,17 +137,15 @@ data = dict(
         data_root=vis_data_root,
         annfile=osp.join(vis_annfile_root, 'vis_test.json'),
         input_shape=[544, 960],
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
+        **img_norm_cfg,
     ),
     test=dict(
         type=dataset_type,
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_test.json'),
         input_shape=[544, 960],
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
         use_right_disp=False,
+        **img_norm_cfg,
     ),
 )
 

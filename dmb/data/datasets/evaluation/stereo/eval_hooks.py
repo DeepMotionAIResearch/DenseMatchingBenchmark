@@ -31,7 +31,23 @@ def to_cpu(tensor):
     raise TypeError((error_msg.format(type(tensor))))
 
 
-def disp_evaluation(cfg, disps, leftDisp=None, rightDisp=None):
+def disp_evaluation(cfg, disps, data_gpu):
+
+    # remove the padding when data augmentation
+    ori_size = data_gpu['original_size']
+    disps = remove_padding(disps, ori_size)
+
+    # process the ground truth disparity map
+    data_gpu['leftDisp'] = data_gpu['leftDisp'] if 'leftDisp' in data_gpu else None
+    if data_gpu['leftDisp'] is not None:
+        data_gpu['leftDisp'] = remove_padding(data_gpu['leftDisp'], ori_size)
+    data_gpu['rightDisp'] = data_gpu['rightDisp'] if 'rightDisp' in data_gpu else None
+    if data_gpu['rightDisp'] is not None:
+        data_gpu['rightDisp'] = remove_padding(data_gpu['rightDisp'], ori_size)
+
+    leftDisp = data_gpu['leftDisp']
+    rightDisp = data_gpu['rightDisp']
+
     # default only evaluate the first disparity map
     eval_disparity_id = cfg.get('eval_disparity_id', [0])
     whole_error_dict = {}
@@ -53,10 +69,10 @@ def disp_evaluation(cfg, disps, leftDisp=None, rightDisp=None):
             for key in noc_occ_error_dict.keys():
                 whole_error_dict['metric_disparity_{}/'.format(id) + key] = noc_occ_error_dict[key]
 
-    return whole_error_dict
+    return whole_error_dict, data_gpu
 
 
-def output_evaluation_in_pandas(output_dict):
+def disp_output_evaluation_in_pandas(output_dict):
     processed_dict = {}
     pandas_dict = {}
     for key in output_dict.keys():
@@ -135,19 +151,8 @@ class DistEvalHook(Hook):
                 disps = result['disps']
                 costs = result['costs']
 
-                ori_size = data_gpu['original_size']
-                disps = remove_padding(disps, ori_size)
-
-                # process the ground truth disparity map
-                data_gpu['leftDisp'] = data_gpu['leftDisp'] if 'leftDisp' in data_gpu else None
-                if data_gpu['leftDisp'] is not None:
-                    data_gpu['leftDisp'] = remove_padding(data_gpu['leftDisp'], ori_size)
-                data_gpu['rightDisp'] = data_gpu['rightDisp'] if 'rightDisp' in data_gpu else None
-                if data_gpu['rightDisp'] is not None:
-                    data_gpu['rightDisp'] = remove_padding(data_gpu['rightDisp'], ori_size)
-
                 # evaluation
-                whole_error_dict = disp_evaluation(self.cfg, disps, data_gpu['leftDisp'], data_gpu['rightDisp'])
+                whole_error_dict, data_gpu = disp_evaluation(self.cfg, disps, data_gpu)
 
                 result = {
                     'Disparity': disps,
@@ -216,7 +221,7 @@ class DistStereoEvalHook(DistEvalHook):
             runner.log_buffer.output[key] = error_log_buffer.output[key]
 
         # for better visualization, format into pandas
-        format_output_dict = output_evaluation_in_pandas(error_log_buffer.output)
+        format_output_dict = disp_output_evaluation_in_pandas(error_log_buffer.output)
 
         runner.logger.info("Epoch [{}] Evaluation Result: \t".format(runner.epoch + 1))
 

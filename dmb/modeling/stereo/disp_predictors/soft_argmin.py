@@ -25,7 +25,7 @@ class SoftArgmin(nn.Module):
             in [BatchSize, 1, Height, Width] layout
     """
 
-    def __init__(self, max_disp, start_disp=0, dilation=1, alpha=1.0, normalize=True):
+    def __init__(self, max_disp=192, start_disp=0, dilation=1, alpha=1.0, normalize=True):
         super(SoftArgmin, self).__init__()
         self.max_disp = max_disp
         self.start_disp = start_disp

@@ -7,7 +7,7 @@ from collections import Iterable
 import time
 import unittest
 
-from dmb.modeling.stereo import build_stereo_model as build_model
+from dmb.modeling import build_model
 from mmcv import Config
 
 def clever_format(nums, format="%.2f"):
@@ -42,9 +42,9 @@ class testModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.device = torch.device('cuda:0')
+        cls.device = torch.device('cuda:2')
         config_path = '/home/zhixiang/youmin/projects/depth/public/' \
-                      'DenseMatchingBenchmark/configs/DeepPruner/scene_flow_8x.py'
+                      'DenseMatchingBenchmark/configs/PSMNet/kitti_2015.py'
         cls.cfg = Config.fromfile(config_path)
         cls.model = build_model(cls.cfg)
         cls.model.to(cls.device)
@@ -94,13 +94,15 @@ class testModel(unittest.TestCase):
 
         self.avg_time[module_name] = avg_time
 
-    @unittest.skip("demonstrating skipping")
-    def test_0_OutputModel(self):
+    # @unittest.skip("demonstrating skipping")
+    def test_2_OutputModel(self):
+        print('\n', '*'*40, 'Model Configuration Result', '*'*40)
         print(self.model)
         calcFlops(self.model, self.model_input['batch'])
 
-    @unittest.skip("demonstrating skipping")
-    def test_1_ModelTime(self):
+    # @unittest.skip("demonstrating skipping")
+    def test_3_ModelTime(self):
+        print('\n', '*'*40, 'Runtime Test Result', '*'*40)
         self.timeTemplate(self.model, 'Model', **self.model_input)
 
     # @unittest.skip("demonstrating skipping")
@@ -116,6 +118,8 @@ class testModel(unittest.TestCase):
 
         self.model.train()
         _, loss_dict = self.model(batch)
+
+        print('\n', '*'*40, 'Train Result', '*'*40)
         for k, v in loss_dict.items():
             print(k, v)
 
@@ -124,7 +128,7 @@ class testModel(unittest.TestCase):
             print(self.model.cmn.loss_evaluator.loss_evaluators)
 
     # @unittest.skip("demonstrating skipping")
-    def test_0_TestingPhase(self):
+    def test_1_TestingPhase(self):
         h, w = self.cfg.data.test.input_shape
         leftImage = torch.rand(1, 3, h, w).to(self.device)
         rightImage = torch.rand(1, 3, h, w).to(self.device)
@@ -140,9 +144,13 @@ class testModel(unittest.TestCase):
         with torch.no_grad():
             result, _ = self.model(batch)
 
+        print('\n', '*'*40, 'Test Result', '*'*40)
         print('Result for disparity:')
         print('Length of disparity map list: ', len(result['disps']))
-        print(result['disps'][0].shape)
+        for i in range(len(result['disps'])):
+            d = result['disps'][i]
+            if d is not None and torch.is_tensor(d):
+                print('Disparity {} with shape: '.format(i), d.shape)
 
         if 'costs' in result:
             print('Result for Cost: ')
@@ -151,6 +159,16 @@ class testModel(unittest.TestCase):
                 print(result['costs'][0].shape)
                 print('Device of cost: ', result['costs'][0].device)
 
+        if 'confs' in result:
+            print('Result for Confidence map')
+            print('Length of confidence list: ', len(result['confs']))
+            for i in range(len(result['confs'])):
+                conf = result['confs'][i]
+                if conf is not None and torch.is_tensor(conf):
+                    print('Confidence {} with shape: '.format(i), conf.shape)
+
 
 if __name__ == '__main__':
     unittest.main()
+
+
