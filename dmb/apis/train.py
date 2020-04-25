@@ -107,7 +107,14 @@ def _dist_train(
         )
 
     # put model on gpus
-    model = MMDistributedDataParallel(model)
+    find_unused_parameters = cfg.get('find_unused_parameters', False)
+    # Sets the `find_unused_parameters` parameter in
+    # torch.nn.parallel.DistributedDataParallel
+    model = MMDistributedDataParallel(
+        model.cuda(),
+        device_ids=[torch.cuda.current_device()],
+        broadcast_buffers=False,
+        find_unused_parameters=find_unused_parameters)
     # build runner
     runner = Runner(
         model, batch_processor, optimizer, cfg.work_dir, cfg.log_level, logger
@@ -120,7 +127,8 @@ def _dist_train(
         optimizer_config = DistOptimizerHook(**cfg.optimizer_config)
     logger.info("Register Optimizer Hook...")
     runner.register_training_hooks(
-        cfg.lr_config, optimizer_config, cfg.checkpoint_config, log_config=None
+        cfg.lr_config, optimizer_config, cfg.checkpoint_config,
+        log_config={"interval": cfg.log_config['interval'], 'hooks': []}
     )
 
     # register self-defined logging hooks

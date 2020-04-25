@@ -112,13 +112,12 @@ model = dict(
 
 # dataset settings
 dataset_type = 'SceneFlow'
-# data_root = 'datasets/{}/'.format(dataset_type)
-# annfile_root = osp.join(data_root, 'annotations')
 
 # root = '/home/youmin/'
 root = '/node01/jobs/io/out/youmin/'
 
-data_root = osp.join(root, 'data/StereoMatching/', dataset_type)
+data_root = '/SceneFlow'
+# data_root = osp.join(root, 'data/StereoMatching/', dataset_type)
 annfile_root = osp.join(root, 'data/annotations/', dataset_type)
 
 # If you don't want to visualize the results, just uncomment the vis data
@@ -132,12 +131,12 @@ data = dict(
     # whether disparity of datasets is sparse, e.g., SceneFLow is not sparse, but KITTI is sparse
     sparse=False,
     imgs_per_gpu=1,
-    workers_per_gpu=16,
+    workers_per_gpu=4,
     train=dict(
         type=dataset_type,
         data_root=data_root,
         annfile=osp.join(annfile_root, 'cleanpass_train.json'),
-        input_shape=[256, 512],
+        input_shape=[384, 512],
         use_right_disp=False,
         **img_norm_cfg,
     ),
@@ -167,7 +166,7 @@ data = dict(
     ),
 )
 
-optimizer = dict(type='RMSprop', lr=0.001)
+optimizer = dict(type='RMSprop', lr=0.0005)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 
 lr_config = dict(
@@ -209,6 +208,7 @@ resume_from = None
 
 workflow = [('train', 1)]
 work_dir = osp.join(root, 'exps/AcfNet/scene_flow_adaptive')
+
 
 # For test
 checkpoint = osp.join(work_dir, 'epoch_10.pth')

@@ -2,7 +2,7 @@
 
 ### Requirements:
 - PyTorch1.2+, Python3.5+, Cuda10.0+
-
+- mmcv==0.4.4
 
 ### Option 1: Step-by-step installation
 

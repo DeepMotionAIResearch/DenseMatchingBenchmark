@@ -288,7 +288,10 @@ def main():
         model = MMDataParallel(model, device_ids=[0])
         outputs = single_gpu_test(model, test_dataset, cfg, cfg.show)
     else:
-        model = MMDistributedDataParallel(model.cuda())
+        model = MMDistributedDataParallel(
+            model.cuda(),
+            device_ids=[torch.cuda.current_device()],
+            broadcast_buffers=False)
         outputs = multi_gpu_test(model, test_dataset, cfg, cfg.show, tmpdir=osp.join(cfg.out_dir, 'temp'))
 
     rank, _ = get_dist_info()
