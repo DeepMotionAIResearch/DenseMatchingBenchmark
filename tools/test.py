@@ -260,7 +260,7 @@ def main():
     # init logger before other step and setup training logger
     # init the logger before other steps
     timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
-    log_file = osp.join(cfg.work_dir, '{}_test_log.txt'.format(timestamp))
+    log_file = osp.join(cfg.out_dir, '{}_test_log.txt'.format(timestamp))
     logger = get_root_logger(cfg.out_dir, cfg.log_level, filename=log_file)
     logger.info("Using {} GPUs".format(cfg.gpus))
     logger.info('Distributed training: {}'.format(distributed))

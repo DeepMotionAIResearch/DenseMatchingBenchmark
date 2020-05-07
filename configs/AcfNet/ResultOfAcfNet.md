@@ -37,7 +37,7 @@ RMSProp, lr(10 epochs) schedule: 1-10 with lr\*1
 
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
-|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         |
+|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8534 | 68h18m | [link][3], pw: qxxr | [link][4]|
 |    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8511 | 26h50m | [link][1], pw: 9s4e | [link][2]|
 
 
@@ -48,7 +48,7 @@ If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArg
 
 |   model name   | predictor |    1PE    |    2PE    |    3PE    |    5PE    | EPE(px)   |
 |:--------------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
-|    adaptive    |   Faster  |
+|    adaptive    |   Faster  |   8.47    |   5.444   |  4.214    |   2.997   |   0.8534  |
 |    adaptive    |   Local   |
 |    uniform     |   Faster  |   8.626   |   5.544   |   4.291   |   3.061   |   0.8511  |
 |    uniform     |   Local   |   5.983   |   3.620   |   2.838   |   2.164   |   0.8216  |
@@ -58,7 +58,7 @@ If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArg
 
 1. Little difference for `EPE`, but make significant effect on `xPE`.
  
-2. Therefor, to get better result on KITTI, alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin`
+2. Therefore, to get better result on KITTI, alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArgmin`
 
 3. `LocalSoftArgmin` only works when cost volume supervised with uni-modal distribution, worse result for PSMNet
 
@@ -70,7 +70,7 @@ RMSProp, lr(20 epochs) schedule: 1-20 with lr\*1
 
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
-|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 
+|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.7565 | 134h31m| [link][3], pw: qxxr | [link][4]|
 |    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.7440 | 56h53m | [link][1], pw: 9s4e | [link][2]|
 
 
@@ -81,7 +81,7 @@ If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArg
 
 |   model name   | predictor |    1PE    |    2PE    |    3PE    |    5PE    | EPE(px)   |
 |:--------------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
-|    adaptive    |   Faster  |
+|    adaptive    |   Faster  |   7.288   |   4.743   |   3.706   |   2.672   |   0.7565  |
 |    adaptive    |   Local   |
 |    uniform     |   Faster  |   7.647   |   4.917   |   4.381   |   2.693   |   0.7440  |
 |    uniform     |   Local   |   5.338   |   3.232   |   2.536   |   1.927   |   0.7161  |
@@ -145,3 +145,5 @@ disp_predictor=dict(
 
 [1]: https://pan.baidu.com/s/11sR2mUEhCyp06g7LXsFG2g
 [2]: https://drive.google.com/open?id=1VwOrfEPfbdrzYvie2bVqUS1-8k_5_Yt1
+[3]: https://pan.baidu.com/s/1jINm_AYzG9f89ml2Dire0A
+[4]: https://drive.google.com/open?id=1sLHrE76SFRfEzu2YK3XwF8QqzBDVdPDx

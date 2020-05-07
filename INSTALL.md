@@ -63,7 +63,10 @@ bash INSTALL.sh $1 $2
 # recommend install instruction:
 
 bash INSTALL.sh all
+
 ```
+if PyTorch>=1.5, please refer  [issue15](https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark/issues/15) to install dcn.
+
 
 ### Prepare data
 

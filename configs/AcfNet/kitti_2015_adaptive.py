@@ -130,12 +130,12 @@ data = dict(
     # if disparity of datasets is sparse, e.g., SceneFLow is not sparse, but KITTI is sparse
     sparse=True,
     imgs_per_gpu=1,
-    workers_per_gpu=16,
+    workers_per_gpu=4,
     train=dict(
         type=dataset_type,
         data_root=data_root,
         annfile=osp.join(annfile_root, 'full_train.json'),
-        input_shape=[256, 512],
+        input_shape=[256, 768],
         use_right_disp=False,
         **img_norm_cfg,
     ),

@@ -116,8 +116,7 @@ dataset_type = 'SceneFlow'
 # root = '/home/youmin/'
 root = '/node01/jobs/io/out/youmin/'
 
-data_root = '/SceneFlow'
-# data_root = osp.join(root, 'data/StereoMatching/', dataset_type)
+data_root = osp.join(root, 'data/StereoMatching/', dataset_type)
 annfile_root = osp.join(root, 'data/annotations/', dataset_type)
 
 # If you don't want to visualize the results, just uncomment the vis data
@@ -166,7 +165,7 @@ data = dict(
     ),
 )
 
-optimizer = dict(type='RMSprop', lr=0.0005)
+optimizer = dict(type='RMSprop', lr=0.001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 
 lr_config = dict(
