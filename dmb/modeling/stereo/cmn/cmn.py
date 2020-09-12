@@ -77,7 +77,7 @@ class Cmn(nn.Module):
         confs, cost_vars, conf_costs = self.get_confidence(costs)
 
         if self.training:
-            cm_losses = self.get_loss(confs, target)
+            cm_losses = self.get_loss(conf_costs, target)
             return cost_vars, cm_losses
         else:
             return cost_vars, confs
