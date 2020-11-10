@@ -58,7 +58,7 @@ All our reimplemented methods will provide checkpoint(including all training det
 |        Model       |   FLOPS   | Parameters | FPS  | Time(ms) | [SceneFlow (EPE)][3] | [KITTI 2012][2] | [KITTI 2015 (D1-all)][1] |
 |:------------------:|:---------:|:----------:|:----:|:--------:|:---------------:|:----------:|:-------------------:|
 |       PSMNet       | 938.186G  |  5.225M    | 1.67 |  599.2   | 1.112 (*1.090*) |            | 2.33  (*2.32*)|
-|       AcfNet       | 1239.0G   |  5.559M    | 1.38 |  723.1   | 0.853 (*0.867*) |
+|       AcfNet       | 1239.0G   |  5.559M    | 1.38 |  723.1   | 0.831 (*0.867*) |
 |StereoNet-8x-single | 78.512G   |  399.066K  | 19.17|  52.2    | 1.533 (*1.525*) |
 |      DeepPruner    |
 |       AnyNet       |  1.476G   |  46.987K   |      |          | 3.190 (*~3.2*)  |
@@ -70,6 +70,10 @@ Update Time: 24/04/2020
 1. Integrate Optical Flow task into our architecture
 2. Inference a model is avaliable
 3. Unify the format of module's name
+
+Update Time: 10/11/2020
+
+1. Fix a [bug](https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark/blob/master/dmb/modeling/stereo/cmn/cmn.py#L80) in the loss of confidence estimation network, and retrain the AcfNet-Adaptive Network, checkpoints are uploaded [here](https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark/blob/master/configs/AcfNet/ResultOfAcfNet.md)
 
 ## Contributing
 
