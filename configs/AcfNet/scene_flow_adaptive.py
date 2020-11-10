@@ -51,7 +51,7 @@ model = dict(
                 # the start disparity of disparity search range
                 start_disp=0,
                 # weight for confidence loss with regard to other loss type
-                weight=24.0,
+                weight=8.0,
                 # weights for different scale loss
                 weights=(1.0, 0.7, 0.5),
             ),
