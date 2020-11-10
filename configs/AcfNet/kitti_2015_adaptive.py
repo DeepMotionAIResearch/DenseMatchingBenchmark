@@ -49,7 +49,7 @@ model = dict(
                 # the maximum disparity of disparity search range
                 max_disp=max_disp,
                 # weight for confidence loss with regard to other loss type
-                weight=24.0,
+                weight=8.0,
                 # weights for different scale loss
                 weights=(1.0, 0.7, 0.5),
             ),
