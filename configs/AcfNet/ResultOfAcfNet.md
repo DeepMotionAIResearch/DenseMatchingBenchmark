@@ -37,7 +37,7 @@ RMSProp, lr(10 epochs) schedule: 1-10 with lr\*1
 
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
-|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8534 | 68h18m | [link][3], pw: qxxr | [link][4]|
+|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8308 | 68h18m | [link][3], pw: qxxr | [link][4]|
 |    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.8511 | 26h50m | [link][1], pw: 9s4e | [link][2]|
 
 
@@ -48,7 +48,7 @@ If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArg
 
 |   model name   | predictor |    1PE    |    2PE    |    3PE    |    5PE    | EPE(px)   |
 |:--------------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
-|    adaptive    |   Faster  |   8.47    |   5.444   |  4.214    |   2.997   |   0.8534  |
+|    adaptive    |   Faster  |   7.905    |   5.125   |  3.991    |   2.873   |   0.8308  |
 |    adaptive    |   Local   |
 |    uniform     |   Faster  |   8.626   |   5.544   |   4.291   |   3.061   |   0.8511  |
 |    uniform     |   Local   |   5.983   |   3.620   |   2.838   |   2.164   |   0.8216  |
@@ -70,7 +70,7 @@ RMSProp, lr(20 epochs) schedule: 1-20 with lr\*1
 
 |   model name   |  lr   |batch size |weight init| synced bn | float16   |loss scale | EPE(px)| time   | BaiDuYun | GoogleDrive |
 |:--------------:|:-----:|:---------:|:---------:|:---------:|:---------:|:---------:|:------:|:------:|:--------:|:-----------:|
-|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.7565 | 134h31m| [link][3], pw: qxxr | [link][4]|
+|    adaptive    | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.7172 | 134h31m| [link][3], pw: qxxr | [link][4]|
 |    uniform     | 0.001 | 4*3       | ✗         |  ✓        | ✗         | ✗         | 0.7440 | 56h53m | [link][1], pw: 9s4e | [link][2]|
 
 
@@ -81,7 +81,7 @@ If we alternate the disparity predictor from `FasterSoftArgmin` to `LocalSoftArg
 
 |   model name   | predictor |    1PE    |    2PE    |    3PE    |    5PE    | EPE(px)   |
 |:--------------:|:---------:|:---------:|:---------:|:---------:|:---------:|:---------:|
-|    adaptive    |   Faster  |   7.288   |   4.743   |   3.706   |   2.672   |   0.7565  |
+|    adaptive    |   Faster  |   6.918   |   4.480   |   3.485   |   2.498   |   0.7172  |
 |    adaptive    |   Local   |
 |    uniform     |   Faster  |   7.647   |   4.917   |   4.381   |   2.693   |   0.7440  |
 |    uniform     |   Local   |   5.338   |   3.232   |   2.536   |   1.927   |   0.7161  |
