@@ -1,6 +1,6 @@
 ### Prepare Scene Flow and KITTI dataset.
 
-It is recommended to symlink the dataset root to `$DenseMatchingBenchmark/datasets/`.
+It is recommended to symlink the dataset root to `$DenseMatchingBenchmark/datasets/`. Related preparing tools for json file generation can be found in [tools](tools/datasets)
 
 ```
 ├── KITTI-2012
