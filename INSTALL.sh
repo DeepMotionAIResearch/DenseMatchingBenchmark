@@ -15,7 +15,6 @@ then
         python setup.py install
     else
         python setup.py build develop
-        cp -r build/lib* build/lib
     fi
 
     cd ../../../
@@ -42,7 +41,6 @@ then
         python setup.py install
     else
         python setup.py build develop
-        cp -r build/lib* build/lib
     fi
 
     cd ../../../
@@ -69,7 +67,6 @@ then
         python setup.py install
     else
         python setup.py build develop
-        cp -r build/lib* build/lib
     fi
 
     cd ../../../
@@ -96,7 +93,6 @@ then
         python setup.py install
     else
         python setup.py build develop
-        cp -r build/lib* build/lib
     fi
 
     cd ../../../
@@ -121,7 +117,6 @@ then
         python setup.py install
     else
         python setup.py build develop
-        cp -r build/lib* build/lib
     fi
 
     echo "*********************************************************************"

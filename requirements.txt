@@ -14,9 +14,8 @@ easydict
 cython
 mmcv==0.4.4
 ipython
-cupy
 thop
 torch>=1.2
 torchvision>=0.4.0
 pypng
-spatial-correlation-sampler
+spatial-correlation-sampler==0.2.1

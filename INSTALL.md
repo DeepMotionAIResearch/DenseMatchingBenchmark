@@ -38,6 +38,11 @@ git clone https://github.com/NVIDIA/apex.git
 cd apex
 python setup.py install --cuda_ext --cpp_ext
 ```
+*Potential ISSUE*: [complie error](https://github.com/NVIDIA/apex/issues/802#issuecomment-618699214) 
+```
+# optional step: 
+git checkout f3a960f80244cf9e80558ab30f7f7e8cbf03c0a0
+```
 
 d. Clone the DenseMatchingBenchmark repository.
 
