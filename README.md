@@ -42,7 +42,7 @@ Please see [GETTING_STARTED.md](GETTING_STARTED.md) for the basic usage of Dense
 ## TODO
 
 - [x] inference
-- [ ] visulization tool(for cost volume)
+- [x] visulization tool(for cost volume)
 - [ ] unsupervised mono-depth
 - [ ] unsupervised stereo
 
@@ -74,6 +74,12 @@ Update Time: 24/04/2020
 Update Time: 10/11/2020
 
 1. Fix a [bug](https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark/blob/master/dmb/modeling/stereo/cmn/cmn.py#L80) in the loss of confidence estimation network, and retrain the AcfNet-Adaptive Network, checkpoints are uploaded [here](https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark/blob/master/configs/AcfNet/ResultOfAcfNet.md)
+
+Update Time: 28/01/2021
+
+1. Add [demo.py](tools/demo.py) to run a demo.
+2. Support visualization for cost distribution, run [view_cost.py](tools/view_cost.py) to take a look. We implement an UI for friendly interaction.
+3. For detailed HowToUse, please refer to [GETTING_STARTED.md](GETTING_STARTED.md)
 
 ## Contributing
 

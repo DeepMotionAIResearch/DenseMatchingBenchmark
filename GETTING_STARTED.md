@@ -96,6 +96,25 @@ Optional arguments are:
 
 The [Inference API](dmb/apis/inference.py) has been provided. Supporting resize, pad or crop the images for inference. 
 
+### Run a demo
+
+For undertanding our benchmark more conveniently, we provide a demo.py in tools subdirectory. To run it, you first have to download a checkpoint, e.g., you can download our AcfNet checkpoint from [here](https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark/blob/master/configs/AcfNet/ResultOfAcfNet.md#sceneflow).
+```shell
+cd tools
+chmod +x demo.sh
+# please reconfigure some args in deme.sh to satisfy your system
+./demo.sh
+
+```
+
+**Optional**:
+If you also want to visualize the cost distribution of some network, such as AcfNet, you can also run a UI for friendly interaction.
+```
+cd tools
+python view_cost.py
+```
+
+
 
 ## Others
 
