@@ -1,6 +1,6 @@
 # DenseMatchingBenchmark
 This project aims at providing the necessary building blocks for easily
-creating dense matching models, e.g. Stereo Matching, Scene Flow using **PyTorch 1.2** or higher.
+creating dense matching models, e.g. Stereo Matching, Scene Flow using **PyTorch 1.7.1** or higher.
 
 ## Introduction
 Our architecture is based on two wellknown detection framework: [mmdetection](https://github.com/open-mmlab/mmdetection) and [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark). By integating their major features, our architecture is suitable for dense matching, and achieves robust performance！
@@ -43,8 +43,6 @@ Please see [GETTING_STARTED.md](GETTING_STARTED.md) for the basic usage of Dense
 
 - [x] inference
 - [x] visulization tool(for cost volume)
-- [ ] unsupervised mono-depth
-- [ ] unsupervised stereo
 
 
 ## Experiment Results
@@ -80,6 +78,11 @@ Update Time: 28/01/2021
 1. Add [demo.py](tools/demo.py) to run a demo.
 2. Support visualization for cost distribution, run [view_cost.py](tools/view_cost.py) to take a look. We implement an UI for friendly interaction.
 3. For detailed HowToUse, please refer to [GETTING_STARTED.md](GETTING_STARTED.md)
+
+Update Time: 31/05/2021
+
+1. Support Pytorch1.7.1, not test for all projects if it works, but you can try, if not work or get worse results, please checkout to: 177c56ca1952f54d28e6073afa2c16981113a2af
+
 
 ## Contributing
 

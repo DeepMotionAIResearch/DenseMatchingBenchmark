@@ -69,13 +69,14 @@ def train_matcher(
         distributed=False, validate=False, logger=None
 ):
     if logger is None:
-        logger = get_root_logger(cfg.log_level)
+        logger = get_root_logger(cfg.log_level, 'INFO')
 
     # start training
     if distributed:
         _dist_train(model, train_dataset, cfg, eval_dataset, vis_dataset, validate=validate, logger=logger)
     else:
-        _non_dist_train(model, train_dataset, cfg, eval_dataset, vis_dataset, validate=validate, logger=logger)
+        raise NotImplementedError("Only support distributed training, even if you only have 1 GPU, set gpu_num=1 in your config")
+        # _non_dist_train(model, train_dataset, cfg, eval_dataset, vis_dataset, validate=validate, logger=logger)
 
 
 def _dist_train(
@@ -117,7 +118,7 @@ def _dist_train(
         find_unused_parameters=find_unused_parameters)
     # build runner
     runner = Runner(
-        model, batch_processor, optimizer, cfg.work_dir, cfg.log_level, logger
+        model, batch_processor, optimizer, cfg.work_dir, logger
     )
 
     # register optimizer hooks

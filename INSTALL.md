@@ -1,8 +1,16 @@
 ## Installation
 
 ### Requirements:
-- PyTorch1.2+, Python3.5+, Cuda10.0+
-- mmcv==0.4.4
+- PyTorch1.7.1+, Python3.8+, Cuda11.0+
+- mmcv==1.3.5
+
+We have verified with Pytorch==1.7.1, the code can train/val/test normally. But with limited GPU resources, experiments are not runned again.
+
+So, if you find worse result, you can checkout to 177c56ca1952f54d28e6073afa2c16981113a2af
+```bash
+cd $DenseMatchingBenchmark
+git checkout 177c56ca1952f54d28e6073afa2c16981113a2af
+```
 
 ### Option 1: Step-by-step installation
 
@@ -14,7 +22,7 @@ a. Create a conda virtual environment and activate it. Then install required pac
 # for that, check that `which conda`, `which pip` and `which python` points to the
 # right path. From a clean conda env, this is what you need to do
 
-conda create --name dense_matching_benchmark python=3.7
+conda create --name dense_matching_benchmark python=3.8
 conda activate dense_matching_benchmark
 
 # this installs the right pip and dependencies for the fresh python
@@ -27,8 +35,13 @@ pip install -r requirements.txt
 
 b. Install PyTorch stable or nightly and torchvision following the [official instructions](https://pytorch.org/).
 
+c0. Install detectron2
+```bash
+python -m pip install detectron2 -f \
+  https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
+```
 
-c. Install apex
+c1. Install apex
 ```bash
 # optional step:
 export CUDA_HOME=/usr/local/cuda-x.x/
@@ -44,6 +57,15 @@ python setup.py install --cuda_ext --cpp_ext
 git checkout f3a960f80244cf9e80558ab30f7f7e8cbf03c0a0
 ```
 
+c2. Install [spatial-correlation-sampler](https://github.com/ClementPinard/Pytorch-Correlation-extension)
+```bash
+git clone https://github.com/ClementPinard/Pytorch-Correlation-extension
+git checkout fix_1.7
+cd Pytorch-Correlation-extension
+python setup.py install
+```
+
+
 d. Clone the DenseMatchingBenchmark repository.
 
 ```bash
@@ -53,9 +75,9 @@ cd DenseMatchingBenchmark
 
 e. Install DenseMatchingBenchmark(other dependencies will be installed optionally).
 ```bash
-# libs include: dmb, spn, GANet
+# libs include: dmb, spn
 
-# the $1 can be: 'all', 'dmb', 'spn', 'GANet', 'correlation', 'dcn'
+# the $1 can be: 'all', 'dmb', 'spn'
 # => install all libs or specific lib, e.g. dmb
 
 # the $2 can be: 'install'
@@ -70,8 +92,6 @@ bash INSTALL.sh $1 $2
 bash INSTALL.sh all
 
 ```
-if PyTorch>=1.5, please refer  [issue15](https://github.com/DeepMotionAIResearch/DenseMatchingBenchmark/issues/15) to install dcn.
-
 
 ### Prepare data
 

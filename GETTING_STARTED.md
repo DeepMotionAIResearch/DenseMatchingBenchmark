@@ -21,7 +21,8 @@ According to the [Linear Scaling Rule](https://arxiv.org/abs/1706.02677), you ne
 ### Train with a single GPU
 
 ```shell
-python tools/train.py PATH_TO_CFG_FILE --gpus 1 --launcher none --validate
+python -m torch.distributed.launch --master_port $PORT --nproc_per_node=1 \
+        tools/train.py $PATH_TO_CONFIG_FILE --launcher pytorch --validate --gpus 1
 ```
 
 If you want to specify the working directory in the command, you can add an argument `--work_dir ${YOUR_WORK_DIR}`.
